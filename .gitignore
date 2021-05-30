@@ -1,25 +1,29 @@
-*.class
-*.log
+simulation/*.class
+simulation/*.log
 
 # sbt specific
-.cache/
-.history/
-.lib/
-dist/*
-target/
-lib_managed/
-src_managed/
-project/boot/
-project/plugins/project/
+simulation/.cache/
+simulation/.history/
+simulation/.lib/
+simulation/dist/*
+simulation/target/
+simulation/lib_managed/
+simulation/src_managed/
+simulation/project/boot/
+simulation/project/plugins/project/
 
 # Scala-IDE specific
-.scala_dependencies
-.worksheet
-.idea
+simulation/.scala_dependencies
+simulation/.worksheet
+simulation/.idea
 
 null/
 
-.bloop
-.metals
-metals.sbt
-.vscode
+simulation/.bloop
+simulation/.metals
+simulation/metals.sbt
+simulation/.vscode
+
+
+visualization/venv
+visualization/venv/*
