@@ -2,11 +2,10 @@ name := "n-body"
 
 version := "0.1"
 
-scalaVersion := "2.13.5"
+scalaVersion := "2.13.6"
 
-val akkaVersion     = "2.6.8"
-
+val AkkaVersion = "2.6.16"
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-actor" % akkaVersion,
-  "com.github.tototoshi" %% "scala-csv" % "1.3.8",
+  "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
+  "com.typesafe.akka" %% "akka-actor-testkit-typed" % AkkaVersion % Test
 )
