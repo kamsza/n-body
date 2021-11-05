@@ -1,7 +1,7 @@
 package simulation
 
 import `object`.Cluster
-import utils.CSVUtil
+import utils.{CSVUtil, Vec2}
 
 import java.io.File
 
@@ -11,20 +11,21 @@ object Simulator extends App {
 
   new File("results/" + outputFileName).delete()
 
-  val cluster = Cluster(CSVUtil.loadBodies(inputFileName))
-  cluster.saveData(outputFileName)
-//  for(i <- 1 to 40) {
-//    for(_ <- 1 to 10000) cluster.makeSimulationStep()
-//    cluster.saveData(outputFile)
-//    if(i % 10 == 0) print("X")
-//    if(i % 100 == 0) print("\n")
-//  }
+  val cluster1 = new Cluster("1", CSVUtil.loadBodies(inputFileName, "1"))
+  val cluster2 = new Cluster("2", CSVUtil.loadBodies(inputFileName, "2"))
+  cluster1.moveCluster(new Vec2(BigDecimal("5.0e10"), 0));
+  cluster2.moveCluster(new Vec2(BigDecimal("-5.0e10"), 0));
+  cluster1.saveData(outputFileName)
+  cluster2.saveData(outputFileName)
+
   val stepsCount = 1000
   for(step <- 1 to stepsCount) {
-    for(_ <- 1 to 6000) {
-      cluster.makeSimulationStep()
+    for(_ <- 1 to 2000) {
+      cluster1.makeSimulationStep()
+      cluster2.makeSimulationStep()
     }
-    cluster.saveData(outputFileName)
+    cluster1.saveData(outputFileName)
+    cluster2.saveData(outputFileName)
     ProgressMarker.updateProgress(step, stepsCount)
   }
 }

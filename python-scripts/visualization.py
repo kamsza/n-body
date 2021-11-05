@@ -24,10 +24,13 @@ def get_axes_limits(df, prop_name):
 file = RESULTS_DIR + sys.argv[1]
 df = pd.read_csv(file, sep=CSV_DELIMITER, header=0, names=['id', 'mass', 'pos_x', 'pos_y', 'v_x', 'v_y'])
 
-points_count = df['id'].max() + 1
+points_count = df['id'].nunique()
 
 fig = plt.figure(figsize=(7, 7))
-ax = plt.axes(xlim=get_axes_limits(df, 'pos_x'), ylim=get_axes_limits(df, 'pos_y'))
+x_lim = get_axes_limits(df, 'pos_x')
+y_lim = get_axes_limits(df, 'pos_y')
+lim = (min(x_lim[0], y_lim[0]), max(x_lim[1], y_lim[1]))
+ax = plt.axes(xlim=lim, ylim=lim)
 scatter = ax.scatter([0] * points_count, [0] * points_count, s=10, color='blue')
 scatter_path = ax.scatter([0] * points_count, [0] * points_count, s=2, color=[.7, .7, 1])
 

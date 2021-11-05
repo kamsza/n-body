@@ -20,7 +20,7 @@ object CSVUtil {
   expected CSV file in which each line contains body data in the format:
     [mass, position X, position Y, velocity X, velocity Y]
    **/
-  def loadBodies(resourceName: String): ArrayBuffer[Body] = {
+  def loadBodies(resourceName: String, clusterId: String): ArrayBuffer[Body] = {
     val resourceFullName = if(resourceName.startsWith("/")) resourceName else "/" + resourceName
     val fileUri = getClass.getResource(resourceFullName)
     var bodyId = 0
@@ -29,7 +29,7 @@ object CSVUtil {
     for (line <- bufferedSource.getLines) {
       val cols = line.split(DELIMITER).map(_.trim)
       bodies += new Body(
-        bodyId,
+        s"${clusterId}_${bodyId}",
         BigDecimal(cols(0)),
         Vec2(BigDecimal(cols(1)), BigDecimal(cols(2))),
         Vec2(BigDecimal(cols(3)), BigDecimal(cols(4)))
@@ -42,7 +42,7 @@ object CSVUtil {
 
   def saveBodiesDataToFile(
      csvFileName: String,
-     bodiesList: List[(Int, BigDecimal, BigDecimal, BigDecimal, BigDecimal, BigDecimal)]
+     bodiesList: List[(String, BigDecimal, BigDecimal, BigDecimal, BigDecimal, BigDecimal)]
   ): Unit = {
     val outputPath = outputDir + csvFileName
     val dataHeader = s"${if(!Files.exists(Paths.get(outputPath))) bodyDataDescription else ""}\n"
