@@ -1,31 +1,55 @@
 package simulation
 
-import `object`.Cluster
+import akka.actor.{ActorSystem, Props}
+import clustered.ClusterActor
+import message.{MakeSimulation, MoveCluster, SaveData, SimulationStart}
 import utils.{CSVUtil, Vec2}
-
-import java.io.File
 
 object Simulator extends App {
   val inputFileName = "2_bodies.txt"
   val outputFileName = "2_bodies.csv"
 
-  new File("results/" + outputFileName).delete()
+  CSVUtil.initCsvFile("2_bodies_1.csv")
+  CSVUtil.initCsvFile("2_bodies_2.csv")
 
-  val cluster1 = new Cluster("1", CSVUtil.loadBodies(inputFileName, "1"))
-  val cluster2 = new Cluster("2", CSVUtil.loadBodies(inputFileName, "2"))
-  cluster1.moveCluster(new Vec2(BigDecimal("5.0e10"), 0));
-  cluster2.moveCluster(new Vec2(BigDecimal("-5.0e10"), 0));
-  cluster1.saveData(outputFileName)
-  cluster2.saveData(outputFileName)
+  val system = ActorSystem("N-BodySystem")
 
-  val stepsCount = 1000
+  val cluster1 = system.actorOf(
+    Props(
+      classOf[ClusterActor],
+      "1",
+      CSVUtil.loadBodies(inputFileName, "1")
+    ),
+    name = "cluster1")
+
+  val cluster2 = system.actorOf(
+    Props(
+      classOf[ClusterActor],
+      "2",
+      CSVUtil.loadBodies(inputFileName, "2")
+    ),
+    name = "cluster2")
+
+  cluster1 ! MoveCluster(Vec2(BigDecimal("5.0e10"), 0))
+  cluster2 ! MoveCluster(Vec2(BigDecimal("-5.0e10"), 0))
+
+//  val simulatorActor = system.actorOf(Props(classOf[ActorSystem]))
+//
+//  simulatorActor ! SimulationStart(List(cluster1, cluster2))
+
+
+
+  cluster1 ! SaveData("2_bodies_1.csv")
+  cluster2 ! SaveData("2_bodies_2.csv")
+
+  val stepsCount = 500
   for(step <- 1 to stepsCount) {
-    for(_ <- 1 to 2000) {
-      cluster1.makeSimulationStep()
-      cluster2.makeSimulationStep()
-    }
-    cluster1.saveData(outputFileName)
-    cluster2.saveData(outputFileName)
+    cluster1 ! MakeSimulation(5000)
+    cluster2 ! MakeSimulation(5000)
+
+    cluster1 ! SaveData("2_bodies_1.csv")
+    cluster2 ! SaveData("2_bodies_2.csv")
+
     ProgressMarker.updateProgress(step, stepsCount)
   }
 }

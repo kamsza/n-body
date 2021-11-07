@@ -3,6 +3,9 @@ results/*
 venv/*
 venv/
 
+target/
+target/*
+
 # User-specific stuff
 .idea/**/workspace.xml
 .idea/**/tasks.xml

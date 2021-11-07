@@ -1,8 +1,8 @@
 package utils
 
-import `object`.Body
+import clustered.Body
 
-import java.io.FileWriter
+import java.io.{File, FileWriter}
 import java.nio.file.{Files, Paths}
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
@@ -40,13 +40,24 @@ object CSVUtil {
     bodies
   }
 
+  def initCsvFile(csvFileName: String): Unit = {
+    new File(outputDir + csvFileName).delete()
+    val outputPath = outputDir + csvFileName
+    val dataHeader = s"${bodyDataDescription}\n"
+    val fileWriter = new FileWriter(outputPath, true)
+    try {
+      fileWriter.write(dataHeader)
+    } finally {
+      fileWriter.close()
+    }
+  }
+
   def saveBodiesDataToFile(
      csvFileName: String,
      bodiesList: List[(String, BigDecimal, BigDecimal, BigDecimal, BigDecimal, BigDecimal)]
   ): Unit = {
     val outputPath = outputDir + csvFileName
-    val dataHeader = s"${if(!Files.exists(Paths.get(outputPath))) bodyDataDescription else ""}\n"
-    val data = dataHeader + bodiesList.map(tuple => tuple.productIterator.mkString(DELIMITER)).mkString("\n")
+    val data = "\n" + bodiesList.map(tuple => tuple.productIterator.mkString(DELIMITER)).mkString("\n")
     val fileWriter = new FileWriter(outputPath, true)
     try {
       fileWriter.write(data)
