@@ -12,8 +12,7 @@ if len(sys.argv) < 2:
 
 file = RESULTS_DIR + sys.argv[1]
 df = pd.read_csv(file, sep=CSV_DELIMITER, header=0, names=['id', 'mass', 'pos_x', 'pos_y', 'v_x', 'v_y'])
-
-points_count = df['id'].max() + 1
+points_count = df['id'].nunique()
 
 
 def count_KE(row):

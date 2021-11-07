@@ -1,3 +1,5 @@
 package message
 
-case class SimulationStart()
+import akka.actor.ActorRef
+
+case class SimulationStart(clusters: List[ActorRef])

@@ -1,20 +1,21 @@
 package `object`
 
-import akka.actor.Actor
-import akka.actor.Actor.Receive
-import message.{ClusterDataUpdate, SimulationStart}
+import akka.actor.{Actor, ActorRef}
+import message.{AddNeighbourClusters, ClusterDataUpdate, ClusterReady, MakeSimulation, MoveCluster, SaveData, SimulationStart}
 import utils.{CSVUtil, Vec2}
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
-case class Cluster(
-                  id: String,
-                  mass: BigDecimal,
-                  bodies: ArrayBuffer[Body] = ArrayBuffer[Body]())
-  extends Object {
- //extends Actor
+class Cluster(
+                val id: String,
+                val mass: BigDecimal,
+               val bodies: ArrayBuffer[Body] = ArrayBuffer[Body](),
+               val neighbourClusters: ArrayBuffer[ActorRef] = ArrayBuffer[ActorRef](),
+               val neighbourObjects: mutable.Map[String, Object] = mutable.Map())
+  extends Actor {
 
-  override var position: Vec2 = _
+   var position: Vec2 = _
 
   def this(id: String, bodies: ArrayBuffer[Body]) = {
     this(id, Cluster.countSummaryMass(bodies), bodies)
@@ -25,20 +26,25 @@ case class Cluster(
 
   // def addNeighbourCluster(cluster: Cluster): Unit = neighbourClusters.append(cluster)
 
-  def moveCluster(vector: Vec2): Unit = bodies.foreach(_.changePosition(vector))
-
-//  override def receive: Receive = {
-//    case SimulationStart =>
-//      for(_ <- 1 to 6000) {
-//        makeSimulationStep()
-//      }
-//    case ClusterDataUpdate(id, mass, position) =>
-//    // TODO: zupdatuj
-//  }
+  override def receive: Receive = {
+    case MoveCluster(vector) => moveSystemMassCenter(vector)
+    case SaveData(outputFile) => saveData(outputFile)
+    case AddNeighbourClusters(clusters, simulationController) =>
+      neighbourClusters.addAll(clusters)
+      neighbourClusters.foreach(_ ! ClusterDataUpdate(id, mass, position))
+      simulationController ! ClusterReady
+    case MakeSimulation(count) => for(_ <- 0 to count) {
+      makeSimulationStep()
+      position = countCenterOfMass()
+      neighbourClusters.foreach(_ ! ClusterDataUpdate(id, mass, position))
+    }
+    case ClusterDataUpdate(id, mass, position) =>
+      neighbourObjects += (id -> Object(id, mass, position))
+  }
 
   def makeSimulationStep(): Unit = {
     bodies.foreach(body => bodies.foreach(body.applyForce))
-    // bodies.foreach(body => neighbourClusters.foreach(body.applyForce))
+    bodies.foreach(body => neighbourObjects.values.foreach(body.applyForce))
     bodies.foreach(_.move())
   }
 
@@ -46,9 +52,7 @@ case class Cluster(
 
   def countSummaryMass(): BigDecimal = Cluster.countSummaryMass(bodies)
 
-  def moveSystemMassCenter(destination: Vec2): Unit = {
-    bodies.foreach(_.changePosition(destination))
-  }
+  def moveSystemMassCenter(vector: Vec2): Unit = bodies.foreach(_.changePosition(vector))
 
   @Override
   def toList: List[(String, BigDecimal, BigDecimal, BigDecimal, BigDecimal, BigDecimal)] = {
@@ -58,6 +62,13 @@ case class Cluster(
   def saveData(csvFileName: String): Unit = CSVUtil.saveBodiesDataToFile(csvFileName, this.toList)
 
   override def toString: String = bodies.map(body => body.toString).mkString("\n")
+
+  override def equals(obj: Any): Boolean = {
+    obj match {
+      case c: Cluster => id == c.id
+      case _ => false
+    }
+  }
 }
 
 object Cluster {

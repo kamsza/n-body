@@ -3,11 +3,11 @@ package `object`
 import utils.{Constants, Vec2}
 
 class Body(
-    val id: String,
-    val mass: BigDecimal,
-    var position: Vec2,
-    var velocity: Vec2
-) extends Object {
+            id: String,
+            mass: BigDecimal,
+            position: Vec2,
+            var velocity: Vec2
+) extends Object(id, mass, position) {
 
   var acceleration: Vec2 = Vec2(BigDecimal("0"), BigDecimal("0"))
 
@@ -25,12 +25,12 @@ class Body(
   }
 
   def move(): Unit = {
-    this.position += this.velocity * Constants.dt + acceleration * math.pow(Constants.dt, 2) / 2
-    this.velocity += acceleration * Constants.dt
+    this.position = this.position + this.velocity * Constants.dt + acceleration * math.pow(Constants.dt, 2) / 2
+    this.velocity = this.velocity + acceleration * Constants.dt
     acceleration = Vec2(BigDecimal("0"), BigDecimal("0"))
   }
 
-  def changePosition(changeVec: Vec2): Unit = this.position += changeVec
+  def changePosition(changeVec: Vec2): Unit = this.position = this.position + changeVec
 
   override def toString: String = f"$mass%30.2f  |   $position   |   $velocity"
 
