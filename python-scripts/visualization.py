@@ -22,10 +22,8 @@ def get_axes_limits(df, prop_name):
 
 
 file = RESULTS_DIR + sys.argv[1]
-df = pd.read_csv(file, sep=CSV_DELIMITER, header=0, names=['id', 'mass', 'pos_x', 'pos_y', 'v_x', 'v_y'])
-
+df = pd.read_csv(file, sep=CSV_DELIMITER, header=0, names=['id', 'mass', 'pos_x', 'pos_y', 'v_x', 'v_y', 'msg id'])
 points_count = df['id'].nunique()
-
 fig = plt.figure(figsize=(7, 7))
 x_lim = get_axes_limits(df, 'pos_x')
 y_lim = get_axes_limits(df, 'pos_y')

@@ -1,13 +1,18 @@
 package `object`
 
-import utils.Vec2
+import akka.actor.Actor
 
-class Object (
-  val id: String,
-  val mass: BigDecimal,
-  var position: Vec2
-) {}
+trait Object extends Actor { // TODO
 
-object Object {
-  def apply(id: String, mass: BigDecimal, position: Vec2): Object = new Object(id, mass, position)
+  def subscribedClasses: Seq[Class[_]]
+
+  override def preStart() {
+    super.preStart()
+    subscribedClasses.foreach(this.context.system.eventStream.subscribe(this.self, _))
+  }
+
+  override def postStop() {
+    subscribedClasses.foreach(this.context.system.eventStream.unsubscribe(this.self, _))
+    super.postStop()
+  }
 }

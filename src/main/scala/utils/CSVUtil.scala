@@ -1,9 +1,9 @@
 package utils
 
 import `object`.Body
+import akka.actor.{ActorRef, ActorSystem, Props}
 
 import java.io.{File, FileWriter}
-import java.nio.file.{Files, Paths}
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
 
@@ -20,24 +20,28 @@ object CSVUtil {
   expected CSV file in which each line contains body data in the format:
     [mass, position X, position Y, velocity X, velocity Y]
    **/
-  def loadBodies(resourceName: String, clusterId: String): ArrayBuffer[Body] = {
+  def loadBodies(resourceName: String, system: ActorSystem): List[ActorRef] = {
     val resourceFullName = if(resourceName.startsWith("/")) resourceName else "/" + resourceName
     val fileUri = getClass.getResource(resourceFullName)
-    var bodyId = 0
-    val bodies = ArrayBuffer[Body]()
+    val bodies = ArrayBuffer[ActorRef]()
     val bufferedSource = Source.fromURL(fileUri)
-    for (line <- bufferedSource.getLines) {
+    val fileLines = bufferedSource.getLines.toList
+    val bodiesCount = fileLines.size
+    var bodyId = 0
+    for (line <- fileLines) {
       val cols = line.split(DELIMITER).map(_.trim)
-      bodies += new Body(
-        s"${clusterId}_${bodyId}",
-        BigDecimal(cols(0)),
-        Vec2(BigDecimal(cols(1)), BigDecimal(cols(2))),
-        Vec2(BigDecimal(cols(3)), BigDecimal(cols(4)))
-      )
+      bodies += system.actorOf(
+        Props(classOf[Body],
+          bodyId.toString,
+          BigDecimal(cols(0)),
+          Vec2(BigDecimal(cols(1)), BigDecimal(cols(2))),
+          Vec2(BigDecimal(cols(3)), BigDecimal(cols(4))),
+          bodiesCount - 1
+        ), name = s"body_${bodyId}")
       bodyId += 1
     }
     bufferedSource.close
-    bodies
+    bodies.toList
   }
 
   def initCsvFile(csvFileName: String): Unit = {
@@ -54,10 +58,11 @@ object CSVUtil {
 
   def saveBodiesDataToFile(
      csvFileName: String,
-     bodiesList: List[(String, BigDecimal, BigDecimal, BigDecimal, BigDecimal, BigDecimal)]
+     bodiesList: List[(String, BigDecimal, Vec2, Vec2, Int)]
   ): Unit = {
     val outputPath = outputDir + csvFileName
-    val data = "\n" + bodiesList.map(tuple => tuple.productIterator.mkString(DELIMITER)).mkString("\n")
+    val flatBodiesList = bodiesList.map(t => Tuple5(t._1, t._2, t._3.productIterator.mkString(DELIMITER), t._4.productIterator.mkString(DELIMITER), t._5))
+    val data = flatBodiesList.map(tuple => tuple.productIterator.mkString(DELIMITER)).mkString("\n")
     val fileWriter = new FileWriter(outputPath, true)
     try {
       fileWriter.write(data)
