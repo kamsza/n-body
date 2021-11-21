@@ -2,11 +2,12 @@ package simulation
 
 import akka.actor.Actor
 import message.{BodyDataSave, BodyDataUpdate, SimulationFinish, SimulationInit, SimulationStart}
+import simulation.Simulator.system
 import utils.{CSVUtil, Constants, Vec2}
 
 import scala.collection.mutable.ListBuffer
 
-case class SimulatorActor() extends Actor {
+case class SimulatorActor(fileName: String) extends Actor {
 
   var bodiesData = new ListBuffer[(String, BigDecimal, Vec2, Vec2, Int)]()
 
@@ -14,7 +15,8 @@ case class SimulatorActor() extends Actor {
   var finishedActorsCounter = 0
 
   override def receive: Receive = {
-    case SimulationInit(bodies) =>
+    case SimulationInit() =>
+      val bodies = CSVUtil.loadBodies(fileName, context.system)
       bodiesCount = bodies.length
       bodies.foreach(body => body ! SimulationStart(context.self))
     case BodyDataSave(id, mass, position, velocity, messageId) =>
@@ -24,9 +26,11 @@ case class SimulatorActor() extends Actor {
       finishedActorsCounter += 1
       if(finishedActorsCounter == bodiesCount) {
         bodiesData = bodiesData.sortBy(data => (data._5, data._1))
-        CSVUtil.initCsvFile("res.csv")
-        CSVUtil.saveBodiesDataToFile("res.csv", bodiesData.toList)
+        val outputFileName = fileName.replaceAll("\\.[^.]*$", ".csv")
+        CSVUtil.initCsvFile(outputFileName)
+        CSVUtil.saveBodiesDataToFile(outputFileName, bodiesData.toList)
         context.stop(self)
+        context.system.terminate()
         println("FINISHED")
       }
   }
