@@ -14,7 +14,7 @@ object CSVUtil {
   val outputDir = "results/"
 
   def bodyDataDescription: String =
-    "id \"mass [kg]\" \"position x [m]\" \"position y [m]\" \"velocity x [m/s]\" \"velocity y[m/s]\""
+    "id \"mass [kg]\" \"position x [m]\" \"position y [m]\" \"velocity x [m/s]\" \"velocity y[m/s]\" timestep"
 
   /**
   expected CSV file in which each line contains body data in the format:
@@ -44,15 +44,17 @@ object CSVUtil {
     bodies.toList
   }
 
-  def initCsvFile(csvFileName: String): Unit = {
-    new File(outputDir + csvFileName).delete()
+  def initCsvFile(csvFileName: String, overwrite: Boolean = true): Unit = {
+    if(overwrite) new File(outputDir + csvFileName).delete()
     val outputPath = outputDir + csvFileName
-    val dataHeader = s"${bodyDataDescription}\n"
-    val fileWriter = new FileWriter(outputPath, true)
-    try {
-      fileWriter.write(dataHeader)
-    } finally {
-      fileWriter.close()
+    val dataHeader = s"${bodyDataDescription}"
+    if(!new File(outputDir + csvFileName).exists()) {
+      val fileWriter = new FileWriter(outputPath, true)
+      try {
+        fileWriter.write(dataHeader)
+      } finally {
+        fileWriter.close()
+      }
     }
   }
 
@@ -69,5 +71,24 @@ object CSVUtil {
     } finally {
       fileWriter.close()
     }
+  }
+
+  def saveTestDataToFile(
+    csvFileName: String,
+    bodiesList: List[(String, BigDecimal, Vec2, Vec2, Int, Int)]
+  ): Unit = {
+    val outputPath = outputDir + csvFileName
+    val flatBodiesList = bodiesList.map(t => Tuple5(t._1, t._2, t._3.productIterator.mkString(DELIMITER), t._4.productIterator.mkString(DELIMITER), t._6))
+    val data = "\n" + flatBodiesList.map(tuple => tuple.productIterator.mkString(DELIMITER)).mkString("\n")
+    val fileWriter = new FileWriter(outputPath, true)
+    try {
+      fileWriter.write(data)
+    } finally {
+      fileWriter.close()
+    }
+  }
+
+  def deleteFile(fileName: String): Unit = {
+    new File(outputDir + fileName).delete()
   }
 }

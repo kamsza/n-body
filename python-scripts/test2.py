@@ -13,9 +13,10 @@ if len(sys.argv) < 2:
     print("Specify the file path as an argument to the program")
 
 file = RESULTS_DIR + sys.argv[1]
-df = pd.read_csv(file, sep=CSV_DELIMITER, header=0, names=['id', 'mass', 'pos_x', 'pos_y', 'v_x', 'v_y', 'msg id'])
+df = pd.read_csv(file, sep=CSV_DELIMITER, header=0, names=['id', 'mass', 'pos_x', 'pos_y', 'v_x', 'v_y', 'timestep'])
 points_count = df['id'].nunique()
-
+shift = 2*points_count
+timesteps = list(df['timestep'].iloc[::shift])
 
 def count_KE(row):
     # KE = m * (v_x^2 + v_y^2) / 2
@@ -25,9 +26,9 @@ def count_KE(row):
 def count_PE(row1, rows):
     # PE = sum(PE for each pair of bodies)
     return rows.apply(
-            lambda row2: _count_PE(row1, row2),
-            axis=1
-        ).sum() / 2
+        lambda row2: _count_PE(row1, row2),
+        axis=1
+    ).sum() / 2
 
 
 def _count_PE(row1, row2):
@@ -52,6 +53,9 @@ def count_angular_momentum(row):
 
 
 result_df = pd.DataFrame([], columns=["KE", "PE", "E", "p"])
+result_E = []
+result_p = []
+result_L = []
 for n in range(0, len(df) // points_count):
     curr_rows = df.iloc[n * points_count: (n + 1) * points_count]
     KE = curr_rows.apply(count_KE, axis=1).sum()
@@ -60,18 +64,29 @@ for n in range(0, len(df) // points_count):
     p = curr_rows.apply(count_momentum, axis=1).sum(axis=0).sum()
     L = curr_rows.apply(count_angular_momentum, axis=1).sum()
     result_df = result_df.append({"KE": KE, "PE": PE, "E": E, "p": p, "L": L}, ignore_index=True)
+    result_E.append(E)
+    result_p.append(p)
+    result_L.append(L)
 
-a = result_df.iloc[0]
-b = result_df.iloc[-1]
-print(a)
-print(b)
-print(b["E"] / a["E"])
+E_pres = []
+for E_start, E_end in zip(result_E[::2], result_E[1::2]):
+    E_pres.append(E_end/E_start)
 
-fig, axs = plt.subplots(3, 2)
-result_df.plot(ax=axs[0, 0], y="KE")
-result_df.plot(ax=axs[0, 1], y="PE")
-result_df.plot(ax=axs[1, 0], y="E")
-result_df.plot(ax=axs[1, 1], y=["KE", "PE", "E"])
-result_df.plot(ax=axs[2, 0], y="p")
-result_df.plot(ax=axs[2, 1], y="L")
-plt.show()
+print(result_p)
+p_pres = []
+for p_start, p_end in zip(result_p[::2], result_p[1::2]):
+    p_pres.append(p_end/p_start)
+
+L_pres = []
+for L_start, L_end in zip(result_L[::2], result_L[1::2]):
+    L_pres.append(L_end/L_start)
+
+for i in range(0, len(timesteps)):
+    print("{0:10d}:  {1:.20f}   |   {2:.20f}   |   {3:.20f}".format(timesteps[i], E_pres[i], p_pres[i], L_pres[i]))
+
+
+# y = [E for E in E_pres if E > 0.85]
+# x = [str(timestep) for timestep in timesteps][0:len(y)]
+# plt.bar(x, y)
+# plt.ylim([0.85, 1.01])
+# plt.show()

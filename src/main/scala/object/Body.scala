@@ -61,6 +61,25 @@ case class Body(
     acceleration = Vec2(BigDecimal("0"), BigDecimal("0"))
   }
 
+  def move(): Unit = {
+    this.position = this.position + this.velocity * simulationConstants.dt + acceleration * math.pow(simulationConstants.dt, 2) / 2
+    this.velocity = this.velocity + acceleration * simulationConstants.dt
+    acceleration = Vec2(BigDecimal("0"), BigDecimal("0"))
+  }
+
+//  def initMove(): Unit = {
+//    this.position = this.position + this.velocity * simulationConstants.dt + acceleration * math.pow(simulationConstants.dt, 2) / 2
+//    this.velocity = this.velocity + acceleration * simulationConstants.dt
+//    acceleration = Vec2(BigDecimal("0"), BigDecimal("0"))
+//  }
+//
+//  def move(): Unit = {
+//    this.position = this.position + this.velocity * simulationConstants.dt + acceleration * math.pow(simulationConstants.dt, 2) / 2
+//    this.velocity = this.velocity + acceleration * simulationConstants.dt
+//    acceleration = Vec2(BigDecimal("0"), BigDecimal("0"))
+//  }
+
+
   def countAcceleration(mass: BigDecimal, position: Vec2): Vec2 = {
     val distance = this.position.distance(position)
     val a = (Constants.G * mass) / (distance * distance + Constants.e)
@@ -69,11 +88,7 @@ case class Body(
     unitDirection * a
   }
 
-  def move(): Unit = {
-    this.position = this.position + this.velocity * simulationConstants.dt + acceleration * math.pow(simulationConstants.dt, 2) / 2
-    this.velocity = this.velocity + acceleration * simulationConstants.dt
-    acceleration = Vec2(BigDecimal("0"), BigDecimal("0"))
-  }
+
 
   def finish(): Unit = {
     managingActor ! SimulationFinish()

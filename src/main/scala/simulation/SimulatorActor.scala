@@ -1,9 +1,8 @@
 package simulation
 
 import akka.actor.Actor
-import message.{BodyDataSave, BodyDataUpdate, SimulationFinish, SimulationInit, SimulationStart}
-import simulation.Simulator.system
-import utils.{CSVUtil, Constants, Vec2}
+import message.{BodyDataSave, SimulationFinish, SimulationInit, SimulationStart}
+import utils.{CSVUtil, SimulationConstants, Vec2}
 
 import scala.collection.mutable.ListBuffer
 
@@ -14,6 +13,8 @@ case class SimulatorActor(fileName: String) extends Actor {
   var bodiesCount = 0
   var finishedActorsCounter = 0
 
+  val progressMarker: ProgressMarker = ProgressMarker()
+
   override def receive: Receive = {
     case SimulationInit() =>
       val bodies = CSVUtil.loadBodies(fileName, context.system)
@@ -21,7 +22,7 @@ case class SimulatorActor(fileName: String) extends Actor {
       bodies.foreach(body => body ! SimulationStart(context.self))
     case BodyDataSave(id, mass, position, velocity, messageId) =>
       bodiesData += Tuple5(id, mass, position, velocity, messageId)
-      ProgressMarker.updateProgress(id)
+      progressMarker.updateProgress(id)
     case SimulationFinish() =>
       finishedActorsCounter += 1
       if(finishedActorsCounter == bodiesCount) {
@@ -37,9 +38,11 @@ case class SimulatorActor(fileName: String) extends Actor {
 }
 
 
-object ProgressMarker {
+case class ProgressMarker(
+  simulationConstants: SimulationConstants = SimulationConstants()
+){
   var step = 0
-  val stepsCount: Int = Constants.simulationStepsCount / Constants.communicationStep
+  val stepsCount: Int = simulationConstants.simulationStepsCount / simulationConstants.communicationStep
   val markersCount = 10
 
   def updateProgress(bodyId: String): Unit = {
@@ -52,7 +55,5 @@ object ProgressMarker {
       }
       step += 1
     }
-
-
   }
 }
