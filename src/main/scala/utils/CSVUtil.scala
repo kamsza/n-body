@@ -64,7 +64,7 @@ object CSVUtil {
   ): Unit = {
     val outputPath = outputDir + csvFileName
     val flatBodiesList = bodiesList.map(t => Tuple5(t._1, t._2, t._3.productIterator.mkString(DELIMITER), t._4.productIterator.mkString(DELIMITER), t._5))
-    val data = flatBodiesList.map(tuple => tuple.productIterator.mkString(DELIMITER)).mkString("\n")
+    val data = "\n" + flatBodiesList.map(tuple => tuple.productIterator.mkString(DELIMITER)).mkString("\n")
     val fileWriter = new FileWriter(outputPath, true)
     try {
       fileWriter.write(data)

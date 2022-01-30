@@ -1,10 +1,9 @@
-# venv\Scripts\activate
-
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from matplotlib.animation import FuncAnimation
 import sys
 import pandas as pd
+# matplotlib.use('Qt5Agg')
 
 RESULTS_DIR = "../results/"
 PATH_LENGTH = 10
@@ -21,7 +20,8 @@ def get_axes_limits(df, prop_name):
     return min_val - margin, max_val + margin
 
 
-file = RESULTS_DIR + sys.argv[1]
+# file = RESULTS_DIR + sys.argv[1]
+file = RESULTS_DIR + 'circle_XX.csv'
 df = pd.read_csv(file, sep=CSV_DELIMITER, header=0, names=['id', 'mass', 'pos_x', 'pos_y', 'v_x', 'v_y', 'msg id'])
 points_count = df['id'].nunique()
 fig = plt.figure(figsize=(7, 7))
@@ -46,7 +46,7 @@ def update(frame):
     scatter.set_offsets(list(curr_pos))
 
     prev_pos += list(curr_pos)
-    prev_pos = prev_pos[points_count * (-PATH_LENGTH):]
+#     prev_pos = prev_pos[points_count * (-PATH_LENGTH):]
     scatter_path.set_offsets(prev_pos)
 
     curr_frame += 1
@@ -54,7 +54,8 @@ def update(frame):
     return scatter_path, scatter
 
 
-anim = FuncAnimation(fig, update, frames=steps, interval=30, repeat=False)
-plt.show()
-# writergif = animation.PillowWriter(fps=30)
-# anim.save('animation.gif', writer=writergif)
+if __name__ == '__main__':
+    anim = FuncAnimation(fig, update, frames=steps, interval=30, repeat=False)
+    # plt.show()
+    writergif = animation.PillowWriter(fps=20)
+    anim.save('animation.gif', writer=writergif)

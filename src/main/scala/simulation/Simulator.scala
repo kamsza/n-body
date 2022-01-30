@@ -6,8 +6,6 @@ import message.SimulationInit
 object Simulator extends App {
 //  val timeSteps = Seq.iterate(1000, 10)(_ + 1000)
 //  val simulationStepsCount = 100000
-  val system = ActorSystem("N-BodySystem")
-  val simulationActor = system.actorOf(Props(classOf[SimulatorActor], "output.txt"), name = "simulationactor")
 //  val simulationActor = system.actorOf(
 //    Props(
 //      classOf[TimestampCheckActor],
@@ -15,5 +13,7 @@ object Simulator extends App {
 //      timeSteps,
 //      simulationStepsCount
 //    ), name = "simulationactor")
+  val system = ActorSystem("N-BodySystem")
+  val simulationActor = system.actorOf(Props(classOf[SimulatorActor], "circle_XX.txt"), name = "simulationactor")
   simulationActor ! SimulationInit()
 }

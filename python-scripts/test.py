@@ -57,12 +57,14 @@ for n in range(0, len(df) // points_count):
     KE = curr_rows.apply(count_KE, axis=1).sum()
     PE = curr_rows.apply(lambda row: count_PE(row, curr_rows), axis=1).sum()
     E = KE + PE
-    p = curr_rows.apply(count_momentum, axis=1).sum(axis=0).sum()
+    p = curr_rows.apply(count_momentum, axis=1).sum(axis=0)
+    p = np.sqrt(p.iloc[0]**2 + p.iloc[0]**2)
     L = curr_rows.apply(count_angular_momentum, axis=1).sum()
     result_df = result_df.append({"KE": KE, "PE": PE, "E": E, "p": p, "L": L}, ignore_index=True)
 
 a = result_df.iloc[0]
 b = result_df.iloc[-1]
+print(type(a['p']))
 print(a)
 print(b)
 print(b["E"] / a["E"])

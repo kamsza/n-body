@@ -47,6 +47,7 @@ case class Body(
     msgId += 1
     counter += 1
     bodies.clear()
+    acceleration = Vec2(BigDecimal("0"), BigDecimal("0"))
     context.system.actorSelection("/user/*") ! BodyDataUpdate(this.id, this.mass, this.position)
   }
 
@@ -58,13 +59,11 @@ case class Body(
   def initMove(): Unit = {
     this.position += this.velocity * simulationConstants.dt + this.acceleration * Math.pow(simulationConstants.dt, 2) * 0.5
     this.velocity += this.acceleration * simulationConstants.dt * 0.5
-    acceleration = Vec2(BigDecimal("0"), BigDecimal("0"))
   }
 
   def move(): Unit = {
     this.position = this.position + this.velocity * simulationConstants.dt + acceleration * math.pow(simulationConstants.dt, 2) / 2
     this.velocity = this.velocity + acceleration * simulationConstants.dt
-    acceleration = Vec2(BigDecimal("0"), BigDecimal("0"))
   }
 
 //  def initMove(): Unit = {
