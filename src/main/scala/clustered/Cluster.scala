@@ -25,7 +25,7 @@ object Cluster {
   def countCenterOfMass(bodies: ArrayBuffer[Body]): Vec2 = {
     val (massesSum, massesAndPositionsProduct) = bodies
       .map(b => (b.mass, b.position))
-      .fold((BigDecimal(0), Vec2(BigDecimal(0), BigDecimal(0))))((b1, b2) => (b1._1 + b2._1, b1._2 + b2._2 * b2._1))
+      .reduce((b1, b2) => (b1._1 + b2._1, b1._2 * b2._1 + b2._2 * b2._1))
     massesAndPositionsProduct / massesSum
   }
 

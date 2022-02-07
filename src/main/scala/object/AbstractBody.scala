@@ -18,10 +18,13 @@ abstract class AbstractBody(
 
   var bodiesMassDistanceDiffSum: Vec2 = Vec2(BigDecimal("0"), BigDecimal("0"))
 
-
   def applyForce(otherObject: Object): Unit = {
     if (id != otherObject.id)
-      bodiesMassDistanceDiffSum += countMassDistanceDiffVec(otherObject.mass, otherObject.position)
+      applyForce(otherObject.mass, otherObject.position)
+  }
+
+  def applyForce(mass: BigDecimal, position: Vec2): Unit = {
+      bodiesMassDistanceDiffSum += countMassDistanceDiffVec(mass, position)
   }
 
   def countMassDistanceDiffVec(mass: BigDecimal, position: Vec2): Vec2 = {

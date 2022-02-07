@@ -2,8 +2,8 @@ package utils
 
 import clustered.Body
 
-import java.io.{File, FileWriter}
-import java.nio.file.{Files, Paths}
+import java.io.{BufferedWriter, File, FileWriter}
+import java.nio.file.{Files, Path, Paths}
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
 
@@ -17,11 +17,11 @@ object CSVUtil {
     "id \"mass [kg]\" \"position x [m]\" \"position y [m]\" \"velocity x [m/s]\" \"velocity y[m/s]\""
 
   /**
-  expected CSV file in which each line contains body data in the format:
-    [mass, position X, position Y, velocity X, velocity Y]
-   **/
+   *  expected CSV file in which each line contains body data in the format:
+   *  [mass, position X, position Y, velocity X, velocity Y]
+   * */
   def loadBodies(resourceName: String, clusterId: String): ArrayBuffer[Body] = {
-    val resourceFullName = if(resourceName.startsWith("/")) resourceName else "/" + resourceName
+    val resourceFullName = if (resourceName.startsWith("/")) resourceName else "/" + resourceName
     val fileUri = getClass.getResource(resourceFullName)
     var bodyId = 0
     val bodies = ArrayBuffer[Body]()
@@ -40,29 +40,17 @@ object CSVUtil {
     bodies
   }
 
-  def initCsvFile(csvFileName: String): Unit = {
-    new File(outputDir + csvFileName).delete()
-    val outputPath = outputDir + csvFileName
-    val dataHeader = s"${bodyDataDescription}\n"
-    val fileWriter = new FileWriter(outputPath, true)
-    try {
-      fileWriter.write(dataHeader)
-    } finally {
-      fileWriter.close()
-    }
+  def loadBodies(resourceName: String, clusterId: String, shiftVector: Vec2): ArrayBuffer[Body] = {
+    val bodies = loadBodies(resourceName, clusterId)
+    bodies.foreach(_.changePosition(shiftVector))
+    bodies
   }
 
-  def saveBodiesDataToFile(
-     csvFileName: String,
-     bodiesList: List[(String, BigDecimal, BigDecimal, BigDecimal, BigDecimal, BigDecimal)]
-  ): Unit = {
-    val outputPath = outputDir + csvFileName
-    val data = "\n" + bodiesList.map(tuple => tuple.productIterator.mkString(DELIMITER)).mkString("\n")
-    val fileWriter = new FileWriter(outputPath, true)
-    try {
-      fileWriter.write(data)
-    } finally {
-      fileWriter.close()
-    }
+  def initCsvFile(csvFilePath: Path): BufferedWriter = {
+    csvFilePath.toFile.delete()
+    val fileWriter = new BufferedWriter(new FileWriter(csvFilePath.toFile))
+    val dataHeader = s"${bodyDataDescription}"
+    fileWriter.write(dataHeader)
+    fileWriter
   }
 }

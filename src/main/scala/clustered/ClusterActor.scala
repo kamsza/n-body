@@ -3,51 +3,78 @@ package clustered
 import `object`.Object
 import akka.actor.{Actor, ActorRef}
 import message._
+import utils.CSVUtil.DELIMITER
 import utils.{CSVUtil, Vec2}
 
+import java.io.BufferedWriter
+import java.nio.file.Path
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 class ClusterActor(
                id: String,
                mass: BigDecimal,
-               startPosition: Vec2)
+               startPosition: Vec2,
+               resultsFileWriter: BufferedWriter,
+               bodies: ArrayBuffer[Body] = ArrayBuffer[Body](),
+               neighbourClusters: ArrayBuffer[ActorRef] = ArrayBuffer[ActorRef](),
+               neighbourObjects: mutable.Map[String, Object] = mutable.Map())
   extends Cluster(id, mass, startPosition) with Actor {
 
-  val bodies: ArrayBuffer[Body]
+  var stepsCounter: Int = 0
 
-  val neighbourClusters: ArrayBuffer[ActorRef] = ArrayBuffer[ActorRef]()
+  var managingActor: ActorRef = ActorRef.noSender
 
-  val neighbourObjects: mutable.Map[String, Object] = mutable.Map()
+  var saveDataStep: Int = 1
 
-  def this(id: String, bodies: ArrayBuffer[Body]) = {
-    this(id, Cluster.countSummaryMass(bodies), Cluster.countCenterOfMass(bodies), bodies)
+  var receivedMessagesCounter: Int = 0
+
+  def this(id: String, bodies: ArrayBuffer[Body], resultsFilePath: Path) = {
+    this(id, Cluster.countSummaryMass(bodies), Cluster.countCenterOfMass(bodies), CSVUtil.initCsvFile(resultsFilePath))
+    this.bodies.addAll(bodies)
   }
 
-  //def addBody(body: Body): Unit = bodies.append(body)
-
-  //def addNeighbourCluster(cluster: Cluster): Unit = neighbourClusters.append(cluster)
-
   override def receive: Receive = {
-    case MoveCluster(vector) => moveSystemMassCenter(vector)
-    case SaveData(outputFile) => saveData(outputFile)
     case AddNeighbourClusters(clusters, simulationController) =>
+      managingActor = simulationController
       neighbourClusters.addAll(clusters)
-      neighbourClusters.foreach(_ ! ClusterDataUpdate(id, mass, position))
-      simulationController ! ClusterReady
-    case MakeSimulation(count) => for(_ <- 0 to count) {
+      managingActor ! ClusterReady
+    case MakeSimulation(count) =>
+      stepsCounter = count
       makeSimulationStep()
-      position = countCenterOfMass()
-      neighbourClusters.foreach(_ ! ClusterDataUpdate(id, mass, position))
-    }
     case ClusterDataUpdate(id, mass, position) =>
-      neighbourObjects += (id -> Cluster(id, mass, position))
+      receivedMessagesCounter += 1
+      neighbourObjects += (id -> Cluster(id, mass, position))                     // TODO: additionally check message id
+
+      if(receivedMessagesCounter == neighbourClusters.size) {                       // TODO: additionally check timestamp between last msg and current, if is big, update
+        makeSimulationStep()
+        doOnSimulationStepAction(stepsCounter)
+        receivedMessagesCounter = 0
+      }
   }
 
   def makeSimulationStep(): Unit = {
+    stepsCounter -= 1
+    updateBodiesPosition()
+    position = countCenterOfMass()
+    neighbourClusters.foreach(_ ! ClusterDataUpdate(id, mass, position))
+  }
+
+  def updateBodiesPosition(): Unit = {
     bodies.foreach(body => bodies.foreach(body.applyForce))
     bodies.foreach(body => neighbourObjects.values.foreach(body.applyForce))
     bodies.foreach(_.move())
+  }
+
+  def doOnSimulationStepAction(stepsCounter: Int): Unit = stepsCounter match {
+    case 0 => finish()
+    case _ if stepsCounter % saveDataStep == 0 => {
+      val dataString = bodies
+        .map(body => body.toTuple)
+        .map(tuple => tuple.productIterator.mkString(DELIMITER))
+        .mkString("\n")
+      resultsFileWriter.write(s"\n${dataString}")
+    }
   }
 
   def countCenterOfMass(): Vec2 = Cluster.countCenterOfMass(bodies)
@@ -61,8 +88,12 @@ class ClusterActor(
     bodies.sortBy(body => body.id).map(body => body.toTuple).toList
   }
 
-  def saveData(csvFileName: String): Unit = CSVUtil.saveBodiesDataToFile(csvFileName, this.toList)
-
   override def toString: String = bodies.map(body => body.toString).mkString("\n")
+
+  def finish(): Unit = {
+    resultsFileWriter.close()
+    managingActor ! SimulationFinish
+    context.stop(self)
+  }
 }
 
