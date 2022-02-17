@@ -24,7 +24,7 @@ case class SimulatorActor() extends Actor {
       println("READY")
       if(readyClustersCounter == clusters.size){
         println("ALL READY")
-        clusters.foreach(cluster => cluster ! MakeSimulation(10))
+        clusters.foreach(cluster => cluster ! MakeSimulation())
       }
     case SimulationFinish =>
       println("FINISHED")

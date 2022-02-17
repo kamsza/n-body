@@ -8,9 +8,8 @@ import utils.{CSVUtil, Vec2}
 import java.nio.file.Paths
 
 object Simulator extends App {
-  val inputFileName = "2_bodies.txt"
+  val inputFileName = "1_body.txt"
   val outputDir = "results/out"
-  val outputFileName = "2_bodies.csv"
 
   val system = ActorSystem("N-BodySystem")
 
@@ -18,7 +17,7 @@ object Simulator extends App {
     Props(
       classOf[ClusterActor],
       "1",
-      CSVUtil.loadBodies(inputFileName, "1", Vec2(BigDecimal("5.0e10"), 0)),
+      CSVUtil.loadBodies(inputFileName, "1", Vec2(BigDecimal("7.0e11"), 0)),
       Paths.get(outputDir, "cluster_1.csv")
     ),
     name = "cluster1")
@@ -27,7 +26,7 @@ object Simulator extends App {
     Props(
       classOf[ClusterActor],
       "2",
-      CSVUtil.loadBodies(inputFileName, "2", Vec2(BigDecimal("-5.0e10"), 0)),
+      CSVUtil.loadBodies(inputFileName, "2", Vec2(BigDecimal("-7.0e11"), 0)),
       Paths.get(outputDir, "cluster_2.csv")
     ),
     name = "cluster2")

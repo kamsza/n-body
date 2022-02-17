@@ -7,7 +7,6 @@ abstract class AbstractBody(
                              val mass: BigDecimal,
                              val startPosition: Vec2,
                              val startVelocity: Vec2,
-                             val simulationConstants: SimulationConstants = SimulationConstants()
                            ) extends Object {
 
   var position: Vec2 = startPosition
@@ -41,15 +40,15 @@ abstract class AbstractBody(
 
   def initMove(): Unit = {
     val acceleration = countAcceleration()
-    this.position += this.velocity * simulationConstants.dt + acceleration * Math.pow(simulationConstants.dt, 2) * 0.5
-    this.velocity += acceleration * simulationConstants.dt * 0.5
+    this.position += this.velocity * SimulationConstants.dt + acceleration * Math.pow(SimulationConstants.dt, 2) * 0.5
+    this.velocity += acceleration * SimulationConstants.dt * 0.5
     resetAcceleration()
   }
 
   def move(): Unit = {
     val acceleration = countAcceleration()
-    this.position += this.velocity * simulationConstants.dt + acceleration * math.pow(simulationConstants.dt, 2) * 0.5
-    this.velocity += acceleration * simulationConstants.dt
+    this.position += this.velocity * SimulationConstants.dt + acceleration * math.pow(SimulationConstants.dt, 2) * 0.5
+    this.velocity += acceleration * SimulationConstants.dt
     resetAcceleration()
   }
 }

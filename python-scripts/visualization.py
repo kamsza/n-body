@@ -43,6 +43,7 @@ steps = (len(df) - 1) // points_count
 def update(frame):
     global prev_pos, curr_frame, steps, df
 
+    print(frame)
     curr_pos = df.iloc[curr_frame * points_count: (curr_frame + 1) * points_count] \
         .apply(lambda row: [row['pos_x'], row['pos_y']], axis=1)
     scatter.set_offsets(list(curr_pos))

@@ -12,7 +12,7 @@ CSV_DELIMITER = ' '
 
 class ClusterData:
     def __init__(self, file_name):
-        self.df = pd.read_csv(file_name, sep=CSV_DELIMITER, header=0, names=['id', 'mass', 'pos_x', 'pos_y', 'v_x', 'v_y', 'timestep'])
+        self.df = pd.read_csv(file_name, sep=CSV_DELIMITER, header=0, names=['id', 'mass', 'pos_x', 'pos_y', 'v_x', 'v_y'])
         self.data_count = self.df['id'].nunique()
         self.x_lim = self._get_axes_limits('pos_x')
         self.y_lim = self._get_axes_limits('pos_y')
@@ -33,9 +33,12 @@ class ClusterData:
         return len(self.df) // self.data_count
 
 
-def get_axes_limits(cluster_data, prop_name):
+def get_summary_axes_limits(cluster_data, prop_name):
     lim = [getattr(cluster, prop_name) for cluster in cluster_data]
-    return reduce(lambda lim_1, lim_2: (min(lim_1[0], lim_2[0]), max(lim_1[1], lim_2[1])), lim)
+    return reduce(lambda lim_1, lim_2: get_axes_limits(lim_1, lim_2), lim)
+
+def get_axes_limits(lim_1, lim_2):
+    return min(lim_1[0], lim_2[0]), max(lim_1[1], lim_2[1])
 
 def get_points_count(cluster_data):
     return sum([getattr(cluster, 'data_count') for cluster in cluster_data])
@@ -62,9 +65,10 @@ if __name__ == "__main__":
 
     # create figure
     fig = plt.figure(figsize=(7, 7))
-    x_lim = get_axes_limits(cluster_data, 'x_lim')
-    y_lim = get_axes_limits(cluster_data, 'y_lim')
-    ax = plt.axes(xlim=x_lim, ylim=y_lim)
+    x_lim = get_summary_axes_limits(cluster_data, 'x_lim')
+    y_lim = get_summary_axes_limits(cluster_data, 'y_lim')
+    lim = get_axes_limits(x_lim, y_lim)
+    ax = plt.axes(xlim=lim, ylim=lim)
     scatter = ax.scatter([0] * points_count, [0] * points_count, s=10, color='blue')
     scatter_path = ax.scatter([0] * points_count, [0] * points_count, s=2, color=[.7, .7, 1])
 
