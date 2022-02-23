@@ -12,13 +12,6 @@ case class Cluster(
   extends Object {
 
   var position: Vec2 = startPosition
-
-  override def equals(obj: Any): Boolean = {
-    obj match {
-      case c: Cluster => id == c.id
-      case _ => false
-    }
-  }
 }
 
 object Cluster {
