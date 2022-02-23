@@ -30,9 +30,4 @@ class Body(
 //  }
 
   def changePosition(changeVec: Vec2): Unit = this.position = this.position + changeVec
-
-  override def toString: String = f"$mass%30.2f  |   $position   |   $velocity"
-
-  def toTuple: (String, BigDecimal, BigDecimal, BigDecimal, BigDecimal, BigDecimal) =
-    Tuple6(id, mass, position.x, position.y, velocity.x, velocity.y)
 }

@@ -68,6 +68,7 @@ if __name__ == "__main__":
     x_lim = get_summary_axes_limits(cluster_data, 'x_lim')
     y_lim = get_summary_axes_limits(cluster_data, 'y_lim')
     lim = get_axes_limits(x_lim, y_lim)
+    lim = (-6e11, 6e11)
     ax = plt.axes(xlim=lim, ylim=lim)
     scatter = ax.scatter([0] * points_count, [0] * points_count, s=10, color='blue')
     scatter_path = ax.scatter([0] * points_count, [0] * points_count, s=2, color=[.7, .7, 1])

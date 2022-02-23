@@ -4,10 +4,9 @@ import `object`.Object
 import akka.actor.{Actor, ActorRef}
 import message._
 import utils.CSVUtil.DELIMITER
-import utils.{CSVUtil, SimulationConstants, Vec2}
+import utils.{SimulationConstants, Vec2}
 
 import java.io.BufferedWriter
-import java.nio.file.Path
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
@@ -27,9 +26,17 @@ class ClusterActor(
 
   var receivedMessagesCounter: Int = 0
 
-  def this(id: String, bodies: ArrayBuffer[Body], resultsFilePath: Path) = {
-    this(id, Cluster.countSummaryMass(bodies), Cluster.countCenterOfMass(bodies), CSVUtil.initCsvFile(resultsFilePath))
+  val progressMarker: Int = (SimulationConstants.simulationStepsCount / 10).floor.toInt
+
+  var progressMonitor: ActorRef = ActorRef.noSender
+
+  def this(id: String, bodies: ArrayBuffer[Body], resultsFilePath: BufferedWriter) = {
+    this(id, Cluster.countSummaryMass(bodies), Cluster.countCenterOfMass(bodies), resultsFilePath)
     this.bodies.addAll(bodies)
+  }
+
+  def setProgressMonitor(progressMonitor: ActorRef) :Unit = {
+    this.progressMonitor = progressMonitor
   }
 
   override def receive: Receive = {
@@ -37,9 +44,14 @@ class ClusterActor(
       managingActor = simulationController
       neighbourClusters.addAll(clusters)
       managingActor ! ClusterReady
+
+    case ActivateProgressMonitor(progressMonitor) =>
+      this.progressMonitor = progressMonitor
+
     case MakeSimulation() =>
       makeSimulationStep()
       sendUpdate()
+
     case ClusterDataUpdate(id, mass, position) =>
       receivedMessagesCounter += 1
       neighbourObjects += (id -> Cluster(id, mass, position))                     // TODO: additionally check message id
@@ -63,10 +75,10 @@ class ClusterActor(
     bodies.foreach(_.move())
   }
 
-  def doOnSimulationStepAction(stepsCounter: Int): Unit = stepsCounter match {
-    case 0 => finish()
-    case _ if stepsCounter % SimulationConstants.communicationStep == 0 => writeDataToFile()
-    case _ => // DO NOTHING
+  def doOnSimulationStepAction(stepsCounter: Int): Unit = {
+    if(stepsCounter % SimulationConstants.communicationStep == 0) writeDataToFile()
+    if(stepsCounter % progressMarker == 0) progressMonitor ! OneTenthDone()
+    if(stepsCounter == 0) finish()
   }
 
   def writeDataToFile(): Unit = {
