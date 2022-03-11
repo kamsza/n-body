@@ -77,7 +77,6 @@ class BodyActor(
     val dataString = this.toTuple
       .productIterator
       .mkString(DELIMITER)
-      .mkString("\n")
 
     resultsFileWriter.write(s"\n${dataString}")
   }
