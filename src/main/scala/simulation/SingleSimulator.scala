@@ -2,7 +2,7 @@ package simulation
 
 import akka.actor.{ActorSystem, Props}
 import message.SimulationStart
-import single.SimulatorActor
+import single.SingleSimulatorActor
 import utils.CSVUtil
 
 object SingleSimulator extends App {
@@ -13,7 +13,7 @@ object SingleSimulator extends App {
 
   val bodies = CSVUtil.loadBodies(inputFileName, outputDir, system)
 
-  val simulatorActor = system.actorOf(Props(classOf[SimulatorActor]))
+  val simulatorActor = system.actorOf(Props(classOf[SingleSimulatorActor]))
 
   simulatorActor ! SimulationStart(bodies)
 }

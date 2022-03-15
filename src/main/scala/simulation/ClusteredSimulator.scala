@@ -1,7 +1,7 @@
 package simulation
 
 import akka.actor.{ActorSystem, Props}
-import clustered.SimulatorActor
+import clustered.ClusteredSimulatorActor
 import message.SimulationStart
 import utils.CSVUtil
 
@@ -14,7 +14,7 @@ object ClusteredSimulator extends App {
 
   val clusters = CSVUtil.loadClusters(inputDir, outputDir, system)
 
-  val simulatorActor = system.actorOf(Props(classOf[SimulatorActor]))
+  val simulatorActor = system.actorOf(Props(classOf[ClusteredSimulatorActor]))
 
   simulatorActor ! SimulationStart(clusters)
 }

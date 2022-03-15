@@ -40,33 +40,47 @@ class ClusterActor(
   }
 
   override def receive: Receive = {
-    case AddNeighbourClusters(clusters, simulationController) =>
-      managingActor = simulationController
-      neighbourClusters.addAll(clusters)
-      managingActor ! ClusterReady
+    case Initialize(simulationController, progressMonitor) => handleInitialize(simulationController, progressMonitor)
+    case AddNeighbourClusters(clusters) => handleAddNeighbourClusters(clusters)
+    case ActivateProgressMonitor(progressMonitor) => setProgressMonitor(progressMonitor)
+    case MakeSimulation() => handleMakeSimulation()
+    case ClusterDataUpdate(id, mass, position) => handleClusterDataUpdate(id, mass, position)
+  }
 
-    case ActivateProgressMonitor(progressMonitor) =>
-      this.progressMonitor = progressMonitor
+  def handleInitialize(simulationController: ActorRef, progressMonitor: ActorRef): Unit = {
+    managingActor = simulationController
+    this.progressMonitor = progressMonitor
+    managingActor ! ClusterInitialized(id, position)
+  }
 
-    case MakeSimulation() =>
-      makeSimulationStep()
-      sendUpdate()
+  def handleAddNeighbourClusters(clusters: Set[ActorRef]): Unit = {
+    neighbourClusters.addAll(clusters)
+    managingActor ! ClusterReady
+  }
 
-    case ClusterDataUpdate(id, mass, position) =>
-      receivedMessagesCounter += 1
-      neighbourObjects += (id -> Cluster(id, mass, position))                     // TODO: additionally check message id
-      if(receivedMessagesCounter == neighbourClusters.size) {                     // TODO: additionally check timestamp between last msg and current, if is big, update
-        receivedMessagesCounter = 0
-        makeSimulationStep()
-        doOnSimulationStepAction(stepsCounter)
-        sendUpdate()
-      }
+  def handleMakeSimulation(): Unit = {
+    makeSimulationStep()
+    sendUpdate()
   }
 
   def makeSimulationStep(): Unit = {
     stepsCounter -= 1
     updateBodiesPosition()
     position = countCenterOfMass()
+  }
+
+
+  def sendUpdate(): Unit = neighbourClusters.foreach(_ ! ClusterDataUpdate(id, mass, position))
+
+  def handleClusterDataUpdate(id: String, mass: BigDecimal, position: Vec2): Unit = {
+    receivedMessagesCounter += 1
+    neighbourObjects += (id -> Cluster(id, mass, position))                     // TODO: additionally check message id
+    if(receivedMessagesCounter == neighbourClusters.size) {                     // TODO: additionally check timestamp between last msg and current, if is big, update
+      receivedMessagesCounter = 0
+      makeSimulationStep()
+      doOnSimulationStepAction(stepsCounter)
+      sendUpdate()
+    }
   }
 
   def updateBodiesPosition(): Unit = {
@@ -89,7 +103,6 @@ class ClusterActor(
     resultsFileWriter.write(s"\n${dataString}")
   }
 
-  def sendUpdate(): Unit = neighbourClusters.foreach(_ ! ClusterDataUpdate(id, mass, position))
 
   def countCenterOfMass(): Vec2 = Cluster.countCenterOfMass(bodies)
 

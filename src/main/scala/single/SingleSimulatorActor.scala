@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorRef, Props}
 import message.{ActivateProgressMonitor, ActorReady, AddNeighbourBodies, AddSimulationController, MakeSimulation, SayHello, SimulationFinish, SimulationStart}
 import utils.ProgressMonitor
 
-case class SimulatorActor() extends Actor {
+case class SingleSimulatorActor() extends Actor {
 
   var bodies: List[ActorRef] = List()
 
