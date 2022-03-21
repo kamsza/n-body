@@ -11,7 +11,7 @@ import scala.io.Source
 
 
 object CSVUtil {
-  val DELIMITER = " "
+  val DELIMITER = ";"
 
   val outputDir = "results/"
 
@@ -26,7 +26,7 @@ object CSVUtil {
     var bodyId = 0
     val bodies = ArrayBuffer[Body]()
     val bufferedSource = createBufferedSource(resourceName)
-    for (line <- bufferedSource.getLines) {
+    for (line <- bufferedSource.getLines.drop(1)) {
       val cols = line.split(DELIMITER).map(_.trim)
       bodies += new Body(
         s"${clusterId}_${bodyId}",

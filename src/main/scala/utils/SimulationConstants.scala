@@ -1,7 +1,7 @@
 package utils
 
 object SimulationConstants {
-  val dt = 100
-  val communicationStep = 300
-  val simulationStepsCount = 10000
+  val dt = 1000
+  val communicationStep = 1
+  val simulationStepsCount =  10
 }

@@ -8,7 +8,7 @@ from functools import reduce
 from matplotlib.animation import FuncAnimation
 
 RESULTS_DIR = "../results/"
-CSV_DELIMITER = ' '
+CSV_DELIMITER = ';'
 
 class ClusterData:
     def __init__(self, file_name):

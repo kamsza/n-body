@@ -27,7 +27,7 @@ case class ClusteredSimulatorActor() extends Actor {
     clusters.foreach(cluster => {
       val neighbourClusters = clusters.filterNot(_ == cluster)
       cluster ! Initialize(context.self, progressMonitor)
-      cluster ! AddNeighbourClusters(scala.collection.immutable.Set(neighbourClusters))
+      cluster ! AddNeighbourClusters(neighbourClusters.toSet)
     })
   }
 
