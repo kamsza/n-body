@@ -12,6 +12,10 @@ case class ClusteredSimulatorActor() extends Actor {
 
   var finishedActorsCounter = 0
 
+  var startTime: Long = 0
+
+  var endTime: Long = 0
+
   override def receive: Receive = {
     case SimulationStart(clusters) => handleSimulationStart(clusters)
     case ClusterReady => handleClusterReady()
@@ -36,12 +40,15 @@ case class ClusteredSimulatorActor() extends Actor {
     if(readyClustersCounter == clusters.size){
       clusters.foreach(cluster => cluster ! MakeSimulation())
       println("SIMULATION STARTED")
+      startTime = System.nanoTime()
     }
   }
 
   def handleSimulationFinished(): Unit = {
     finishedActorsCounter += 1
     if(finishedActorsCounter == clusters.size) {
+      endTime = System.nanoTime()
+      println("Simulation time: " + (endTime - startTime) + "ns")
       context.stop(self)
       context.system.terminate()
     }
