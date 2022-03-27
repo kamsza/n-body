@@ -1,5 +1,5 @@
 package message
 
-import utils.Vec2
+import math.Vec2
 
 case class ClusterInitialized(id: String, position: Vec2)

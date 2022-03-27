@@ -1,20 +1,11 @@
-package clustered
+package utils
 
-import `object`.Object
-import utils.Vec2
+import clustered.Body
+import math.Vec2
 
 import scala.collection.mutable.ArrayBuffer
 
-case class Cluster(
-                    id: String,
-                    mass: BigDecimal,
-                    startPosition: Vec2)
-  extends Object {
-
-  var position: Vec2 = startPosition
-}
-
-object Cluster {
+object PhysicsUtil {
   def countCenterOfMass(bodies: ArrayBuffer[Body]): Vec2 = {
     val (massesSum, massesAndPositionsProduct) = bodies
       .map(b => (b.mass, b.position))

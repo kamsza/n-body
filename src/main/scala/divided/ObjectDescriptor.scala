@@ -1,7 +1,7 @@
 package divided
 
 import akka.actor.ActorRef
-import utils.Vec2
+import math.Vec2
 
 case class ObjectDescriptor(id: String,
                            position: Vec2,

@@ -2,23 +2,25 @@ package clustered
 
 import `object`.Object
 import akka.actor.{Actor, ActorRef}
+import constant.SimulationConstants
+import math.Vec2
 import message._
 import utils.CSVUtil.DELIMITER
-import utils.{SimulationConstants, Vec2}
+import utils.PhysicsUtil
 
 import java.io.BufferedWriter
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 class ClusterActor(
-               id: String,
-               mass: BigDecimal,
-               startPosition: Vec2,
+               override val id: String,
+               override val mass: BigDecimal,
+               var position: Vec2,
                resultsFileWriter: BufferedWriter,
                bodies: ArrayBuffer[Body] = ArrayBuffer[Body](),
                neighbourClusters: ArrayBuffer[ActorRef] = ArrayBuffer[ActorRef](),
-               neighbourObjects: mutable.Map[String, Object] = mutable.Map())
-  extends Cluster(id, mass, startPosition) with Actor {
+               neighbourObjects: mutable.Map[String, ClusterDescriptor] = mutable.Map())
+  extends Object with Actor {
 
   var stepsCounter: Int = SimulationConstants.simulationStepsCount
 
@@ -26,12 +28,12 @@ class ClusterActor(
 
   var receivedMessagesCounter: Int = 0
 
-  val progressMarker: Int = (SimulationConstants.simulationStepsCount / 10).floor.toInt
+  val progressMarker: Int = Math.max(1, (SimulationConstants.simulationStepsCount / 10).floor.toInt)
 
   var progressMonitor: ActorRef = ActorRef.noSender
 
   def this(id: String, bodies: ArrayBuffer[Body], resultsFilePath: BufferedWriter) = {
-    this(id, Cluster.countSummaryMass(bodies), Cluster.countCenterOfMass(bodies), resultsFilePath)
+    this(id, PhysicsUtil.countSummaryMass(bodies), PhysicsUtil.countCenterOfMass(bodies), resultsFilePath)
     this.bodies.addAll(bodies)
   }
 
@@ -55,7 +57,7 @@ class ClusterActor(
 
   def handleAddNeighbourClusters(clusters: Set[ActorRef]): Unit = {
     neighbourClusters.addAll(clusters)
-    managingActor ! ClusterReady
+    managingActor ! ClusterReady()
   }
 
   def handleMakeSimulation(): Unit = {
@@ -74,8 +76,8 @@ class ClusterActor(
 
   def handleClusterDataUpdate(id: String, mass: BigDecimal, position: Vec2): Unit = {
     receivedMessagesCounter += 1
-    neighbourObjects += (id -> Cluster(id, mass, position))                     // TODO: additionally check message id
-    if(receivedMessagesCounter == neighbourClusters.size) {                     // TODO: additionally check timestamp between last msg and current, if is big, update
+    neighbourObjects += (id -> ClusterDescriptor(id, mass, position))             // TODO: additionally check message id
+    if(receivedMessagesCounter == neighbourClusters.size) {                       // TODO: additionally check timestamp between last msg and current, if is big, update
       receivedMessagesCounter = 0
       makeSimulationStep()
       doOnSimulationStepAction(stepsCounter)
@@ -104,9 +106,9 @@ class ClusterActor(
   }
 
 
-  def countCenterOfMass(): Vec2 = Cluster.countCenterOfMass(bodies)
+  def countCenterOfMass(): Vec2 = PhysicsUtil.countCenterOfMass(bodies)
 
-  def countSummaryMass(): BigDecimal = Cluster.countSummaryMass(bodies)
+  def countSummaryMass(): BigDecimal = PhysicsUtil.countSummaryMass(bodies)
 
   def moveSystemMassCenter(vector: Vec2): Unit = bodies.foreach(_.changePosition(vector))
 
@@ -119,7 +121,7 @@ class ClusterActor(
 
   def finish(): Unit = {
     resultsFileWriter.close()
-    managingActor ! SimulationFinish
+    managingActor ! SimulationFinish()
     context.stop(self)
   }
 }

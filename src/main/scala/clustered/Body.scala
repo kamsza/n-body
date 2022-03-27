@@ -1,7 +1,8 @@
 package clustered
 
-import `object`.{Object, AbstractBody}
-import utils.{Constants, Vec2}
+import `object`.{AbstractBody, Object}
+import constant.Constants
+import math.Vec2
 
 class Body(
             id: String,

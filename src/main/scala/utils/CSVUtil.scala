@@ -2,6 +2,7 @@ package utils
 
 import akka.actor.{ActorRef, ActorSystem, Props}
 import clustered.{Body, ClusterActor}
+import math.Vec2
 import single.BodyActor
 
 import java.io.{BufferedWriter, File, FileWriter}

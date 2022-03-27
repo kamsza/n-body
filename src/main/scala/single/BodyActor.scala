@@ -2,9 +2,10 @@ package single
 
 import `object`.AbstractBody
 import akka.actor.{Actor, ActorRef}
+import constant.SimulationConstants
+import math.Vec2
 import message.{ActivateProgressMonitor, ActorReady, AddNeighbourBodies, BodyDataUpdate, MakeSimulation, OneTenthDone, SimulationFinish}
 import utils.CSVUtil.DELIMITER
-import utils.{SimulationConstants, Vec2}
 
 import java.io.BufferedWriter
 import scala.collection.mutable
@@ -30,7 +31,7 @@ class BodyActor(
 
   var neighbourBodiesCount: Int = 0
 
-  val progressMarker: Int = (SimulationConstants.simulationStepsCount / 10).floor.toInt
+  val progressMarker: Int = Math.max(1, (SimulationConstants.simulationStepsCount / 10).floor.toInt)
 
   var progressMonitor: ActorRef = ActorRef.noSender
 

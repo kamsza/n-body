@@ -1,6 +1,7 @@
 package utils
 
 import akka.actor.Actor
+import constant.SimulationConstants
 import message.{OneTenthDone, SayHello}
 
 case class ProgressMonitor(actorsCount: Int) extends Actor {

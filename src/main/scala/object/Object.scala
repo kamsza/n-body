@@ -1,11 +1,11 @@
 package `object`
 
-import utils.Vec2
+import math.Vec2
 
 trait Object {
-  def id: String
-  def mass: BigDecimal
-  def position: Vec2
+  val id: String
+  val mass: BigDecimal
+  var position: Vec2
 
   override def equals(obj: Any): Boolean = {
     obj match {

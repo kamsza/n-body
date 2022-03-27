@@ -1,6 +1,7 @@
 package `object`
 
-import utils.{Constants, SimulationConstants, Vec2}
+import constant.{Constants, SimulationConstants}
+import math.Vec2
 
 abstract class AbstractBody(
                              val id: String,
@@ -47,7 +48,7 @@ abstract class AbstractBody(
 
   def move(): Unit = {
     val acceleration = countAcceleration()
-    this.position += this.velocity * SimulationConstants.dt + acceleration * math.pow(SimulationConstants.dt, 2) * 0.5
+    this.position += this.velocity * SimulationConstants.dt + acceleration * Math.pow(SimulationConstants.dt, 2) * 0.5
     this.velocity += acceleration * SimulationConstants.dt
     resetAcceleration()
   }

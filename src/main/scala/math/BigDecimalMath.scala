@@ -1,4 +1,4 @@
-package utils
+package math
 
 import java.math.MathContext
 
@@ -19,7 +19,7 @@ object BigDecimalMath {
     }
     val maxPrecision = mathContext.getPrecision + 6
     val acceptableError = new java.math.BigDecimal("1").movePointLeft(mathContext.getPrecision + 1)
-    var result =  java.math.BigDecimal.valueOf(Math.sqrt(x.doubleValue))
+    var result = java.math.BigDecimal.valueOf(Math.sqrt(x.doubleValue))
     var adaptivePrecision = expectedInitialPrecision
 
     var last = new java.math.BigDecimal("0")

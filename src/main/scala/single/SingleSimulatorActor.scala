@@ -30,7 +30,7 @@ case class SingleSimulatorActor() extends Actor {
         bodies.foreach(body => body ! MakeSimulation())
         println("SIMULATION STARTED")
       }
-    case SimulationFinish =>
+    case SimulationFinish() =>
       finishedActorsCounter += 1
       if(finishedActorsCounter == bodies.size) {
         context.stop(self)

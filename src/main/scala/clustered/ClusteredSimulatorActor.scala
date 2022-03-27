@@ -6,7 +6,7 @@ case class ClusteredSimulatorActor() extends ClusterSimulationHandler {
 
   override def receive: Receive = {
     case SimulationStart(clusters) => handleSimulationStart(clusters)
-    case ClusterReady => handleClusterReady()
-    case SimulationFinish => handleSimulationFinished()
+    case ClusterReady() => handleClusterReady()
+    case SimulationFinish() => handleSimulationFinished()
   }
 }

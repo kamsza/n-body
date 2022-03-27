@@ -7,8 +7,8 @@ import utils.CSVUtil
 
 
 object ClusteredSimulator extends App {
-  val inputDir = "/cls-12"
-  val outputDir = "results/cls-12"
+  val inputDir = "/solar_systems"
+  val outputDir = "results/solar_systems"
 
   val system = ActorSystem("N-BodySystem")
 

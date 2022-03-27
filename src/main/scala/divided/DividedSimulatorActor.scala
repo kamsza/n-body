@@ -2,8 +2,10 @@ package divided
 
 import akka.actor.{ActorRef, Props}
 import clustered.{ClusterSimulationHandler, ClusteredSimulatorActor}
+import constant.Constants
+import math.Vec2
 import message.{AddNeighbourClusters, ClusterInitialized, ClusterReady, Initialize, SayHello, SimulationFinish, SimulationStart}
-import utils.{Constants, ProgressMonitor, Vec2}
+import utils.ProgressMonitor
 
 import scala.collection.mutable
 
@@ -16,8 +18,8 @@ case class DividedSimulatorActor() extends ClusterSimulationHandler {
   override def receive: Receive = {
     case SimulationStart(clusters) => handleSimulationStart(clusters)
     case ClusterInitialized(id, position) => handleClusterInitialized(id, position, sender())
-    case ClusterReady => handleClusterReady()
-    case SimulationFinish => handleSimulationFinished()
+    case ClusterReady() => handleClusterReady()
+    case SimulationFinish() => handleSimulationFinished()
   }
 
   override def handleSimulationStart(clusters: List[ActorRef]): Unit = {
