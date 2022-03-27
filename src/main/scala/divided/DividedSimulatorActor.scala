@@ -1,11 +1,10 @@
 package divided
 
-import akka.actor.{ActorRef, Props}
-import clustered.{ClusterSimulationHandler, ClusteredSimulatorActor}
+import akka.actor.ActorRef
+import common.ClusterSimulationHandler
 import constant.Constants
 import math.Vec2
-import message.{AddNeighbourClusters, ClusterInitialized, ClusterReady, Initialize, SayHello, SimulationFinish, SimulationStart}
-import utils.ProgressMonitor
+import message.{AddNeighbourClusters, ClusterInitialized, ClusterReady, SimulationFinish, SimulationStart}
 
 import scala.collection.mutable
 
@@ -18,20 +17,8 @@ case class DividedSimulatorActor() extends ClusterSimulationHandler {
   override def receive: Receive = {
     case SimulationStart(clusters) => handleSimulationStart(clusters)
     case ClusterInitialized(id, position) => handleClusterInitialized(id, position, sender())
-    case ClusterReady() => handleClusterReady()
-    case SimulationFinish() => handleSimulationFinished()
-  }
-
-  override def handleSimulationStart(clusters: List[ActorRef]): Unit = {
-    this.clusters = clusters
-    val progressMonitor = createProgressMonitor()
-    clusters.foreach(cluster => cluster ! Initialize(context.self, progressMonitor))
-  }
-
-  def createProgressMonitor(): ActorRef = {
-    val progressMonitor = context.actorOf(Props(classOf[ProgressMonitor], clusters.size), "progress_monitor")
-    progressMonitor ! SayHello()
-    progressMonitor
+    case ClusterReady() => handleActorReady()
+    case SimulationFinish() => handleSimulationFinish()
   }
 
   def handleClusterInitialized(id: String, position: Vec2, senderRef: ActorRef): Unit = {

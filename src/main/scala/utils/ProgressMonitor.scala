@@ -14,7 +14,10 @@ case class ProgressMonitor(actorsCount: Int) extends Actor {
 
   override def receive: Receive = {
     case SayHello() =>
-      println("SIMULATION CONFIG simulationStepsCount: " + SimulationConstants.simulationStepsCount)
+      println(s"""simulation configuration
+      - steps count: ${SimulationConstants.simulationStepsCount}
+      - dt: ${SimulationConstants.dt}
+      - save data step: ${SimulationConstants.communicationStep}""")
     case OneTenthDone() =>
       receivedCounter += 1
       if(receivedCounter == actorsCount) {

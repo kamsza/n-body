@@ -1,16 +1,17 @@
 package single
 
 import akka.actor.{Actor, ActorRef, Props}
+import common.SimulationHandler
 import message.{ActivateProgressMonitor, ActorReady, AddNeighbourBodies, AddSimulationController, MakeSimulation, SayHello, SimulationFinish, SimulationStart}
 import utils.ProgressMonitor
 
-case class SingleSimulatorActor() extends Actor {
+case class SingleSimulatorActor() extends SimulationHandler {
 
   var bodies: List[ActorRef] = List()
 
-  var readyBodiesCounter = 0
+  override def actorsCount: Int = bodies.size
 
-  var finishedActorsCounter = 0
+  override def actors: List[ActorRef] = bodies
 
   override def receive: Receive = {
     case SimulationStart(bodies) => handleSimulationStart(bodies)
@@ -29,21 +30,5 @@ case class SingleSimulatorActor() extends Actor {
       body ! AddNeighbourBodies(neighbourBodies, context.self)
       body ! ActivateProgressMonitor(progressMonitor)
     })
-  }
-
-  def handleActorReady(): Unit = {
-    readyBodiesCounter += 1
-    if (readyBodiesCounter == bodies.size) {
-      bodies.foreach(body => body ! MakeSimulation())
-      println("SIMULATION STARTED")
-    }
-  }
-
-  def handleSimulationFinish(): Unit = {
-    finishedActorsCounter += 1
-    if(finishedActorsCounter == bodies.size) {
-      context.stop(self)
-      context.system.terminate()
-    }
   }
 }
