@@ -1,7 +1,7 @@
 package divided
 
 import akka.actor.ActorRef
-import common.ClusterSimulationHandler
+import clustered_common.ClusterSimulationHandler
 import constant.Constants
 import math.Vec2
 import message.{AddNeighbourClusters, ClusterInitialized, ClusterReady, SimulationFinish, SimulationStart}

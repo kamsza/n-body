@@ -1,7 +1,8 @@
-package common
+package clustered_common
 
-import akka.actor.{Actor, ActorRef, Props}
-import message.{AddNeighbourClusters, Initialize, MakeSimulation, SayHello}
+import akka.actor.{ActorRef, Props}
+import common.SimulationHandler
+import message.{Initialize, SayHello}
 import utils.ProgressMonitor
 
 abstract class ClusterSimulationHandler extends SimulationHandler {

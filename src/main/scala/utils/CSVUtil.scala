@@ -9,6 +9,7 @@ import java.io.{BufferedWriter, File, FileWriter}
 import java.nio.file.{Path, Paths}
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
+import scala.reflect.ClassTag
 
 
 object CSVUtil {
@@ -67,7 +68,7 @@ object CSVUtil {
     bodies
   }
 
-  def loadClusters(resourceDir: String, outputDir: String, system: ActorSystem): List[ActorRef] = {
+  def loadClusters(resourceDir: String, outputDir: String, system: ActorSystem, T: Class[_]): List[ActorRef] = {
     val clusters = ArrayBuffer[ActorRef]()
     val dir = new File(getClass.getResource(resourceDir).getPath)
     if (!dir.exists || !dir.isDirectory) throw new IllegalArgumentException(s"Resource directory '${resourceDir}' not found")
@@ -77,7 +78,7 @@ object CSVUtil {
       val resourcePath = new File(resourceDir, resourceName.getName).toString
       clusters += system.actorOf(
         Props(
-          classOf[ClusterActor],
+          T,
           clusterName,
           CSVUtil.loadBodies(resourcePath, clusterName),
           initCsvFile(Paths.get(outputDir), s"${clusterName}.csv")

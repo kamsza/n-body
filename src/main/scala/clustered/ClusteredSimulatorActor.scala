@@ -1,7 +1,7 @@
 package clustered
 
 import akka.actor.ActorRef
-import common.ClusterSimulationHandler
+import clustered_common.ClusterSimulationHandler
 import message.{AddNeighbourClusters, ClusterReady, SimulationFinish, SimulationStart}
 
 case class ClusteredSimulatorActor() extends ClusterSimulationHandler {
