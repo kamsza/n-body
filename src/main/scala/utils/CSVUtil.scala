@@ -1,15 +1,15 @@
 package utils
 
 import akka.actor.{ActorRef, ActorSystem, Props}
-import clustered.{Body, ClusterActor}
+import clustered_common.Body
 import math.Vec2
 import single.BodyActor
 
 import java.io.{BufferedWriter, File, FileWriter}
 import java.nio.file.{Path, Paths}
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
-import scala.reflect.ClassTag
 
 
 object CSVUtil {
@@ -17,32 +17,10 @@ object CSVUtil {
 
   val outputDir = "results/"
 
-  def bodyDataDescription: String =
-    "id \"mass [kg]\" \"position x [m]\" \"position y [m]\" \"velocity x [m/s]\" \"velocity y[m/s]\""
+  def bodyDataDescription: String = List("id", "\"mass [kg]\"", "\"position x [m]\"", "\"position y [m]\"", "velocity x [m/s]", "\"velocity y[m/s]\"")
+    .mkString(DELIMITER)
 
-  /**
-   *  expected CSV file in which each line contains body data in the format:
-   *  [mass, position X, position Y, velocity X, velocity Y]
-   * */
-  def loadBodies(resourceName: String, clusterId: String): ArrayBuffer[Body] = {
-    var bodyId = 0
-    val bodies = ArrayBuffer[Body]()
-    val bufferedSource = createBufferedSource(resourceName)
-    for (line <- bufferedSource.getLines.drop(1)) {
-      val cols = line.split(DELIMITER).map(_.trim)
-      bodies += new Body(
-        s"${clusterId}_${bodyId}",
-        BigDecimal(cols(0)),
-        Vec2(BigDecimal(cols(1)), BigDecimal(cols(2))),
-        Vec2(BigDecimal(cols(3)), BigDecimal(cols(4)))
-      )
-      bodyId += 1
-    }
-    bufferedSource.close
-    bodies
-  }
-
-  def loadBodies(resourceName: String, outputDir: String, system: ActorSystem): List[ActorRef] = {
+  def loadBodiesActors(resourceName: String, outputDir: String, system: ActorSystem): List[ActorRef] = {
     var bodyId = 0
     val bodies = ArrayBuffer[ActorRef]()
     val bufferedSource = createBufferedSource(resourceName)
@@ -62,8 +40,26 @@ object CSVUtil {
     bodies.toList
   }
 
-  def loadBodies(resourceName: String, clusterId: String, shiftVector: Vec2): ArrayBuffer[Body] = {
-    val bodies = loadBodies(resourceName, clusterId)
+  def loadClusterBodies(resourceName: String, clusterId: String): mutable.Set[Body] = {
+    var bodyId = 0
+    val bodies = mutable.Set[Body]()
+    val bufferedSource = createBufferedSource(resourceName)
+    for (line <- bufferedSource.getLines.drop(1)) {
+      val cols = line.split(DELIMITER).map(_.trim)
+      bodies += new Body(
+        s"${clusterId}_${bodyId}",
+        BigDecimal(cols(0)),
+        Vec2(BigDecimal(cols(1)), BigDecimal(cols(2))),
+        Vec2(BigDecimal(cols(3)), BigDecimal(cols(4)))
+      )
+      bodyId += 1
+    }
+    bufferedSource.close
+    bodies
+  }
+
+  def loadClusterBodies(resourceName: String, clusterId: String, shiftVector: Vec2): mutable.Set[Body] = {
+    val bodies = loadClusterBodies(resourceName, clusterId)
     bodies.foreach(_.changePosition(shiftVector))
     bodies
   }
@@ -80,7 +76,7 @@ object CSVUtil {
         Props(
           T,
           clusterName,
-          CSVUtil.loadBodies(resourcePath, clusterName),
+          CSVUtil.loadClusterBodies(resourcePath, clusterName),
           initCsvFile(Paths.get(outputDir), s"${clusterName}.csv")
         ),
         name = clusterName)

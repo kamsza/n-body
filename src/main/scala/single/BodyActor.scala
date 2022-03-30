@@ -9,7 +9,6 @@ import utils.CSVUtil.DELIMITER
 
 import java.io.BufferedWriter
 import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
 
 class BodyActor(
                  id: String,
@@ -19,7 +18,7 @@ class BodyActor(
                  resultsFileWriter: BufferedWriter)
   extends AbstractBody(id, mass, startPosition, startVelocity) with Actor  {
 
-  val neighbourBodies: ArrayBuffer[ActorRef] = ArrayBuffer[ActorRef]()
+  var neighbourBodies: List[ActorRef] = null
 
   var bodies: mutable.Set[String] = mutable.Set()
 
@@ -35,30 +34,39 @@ class BodyActor(
 
   var progressMonitor: ActorRef = ActorRef.noSender
 
+  def setProgressMonitor(progressMonitor: ActorRef) :Unit = {
+    this.progressMonitor = progressMonitor
+  }
+
   override def receive: Receive = {
-    case AddNeighbourBodies(bodies, simulationController) =>
-      managingActor = simulationController
-      neighbourBodiesCount = bodies.size
-      neighbourBodies.addAll(bodies)
-      managingActor ! ActorReady()
+    case AddNeighbourBodies(bodies, simulationController) => handleAddNeighbourBodies(bodies, simulationController)
+    case ActivateProgressMonitor(progressMonitor) => setProgressMonitor(progressMonitor)
+    case MakeSimulation() => handleMakeSimulation()
+    case BodyDataUpdate(id, mass, position) if id != this.id => handleBodyDataUpdate(id, mass, position)
+  }
 
-    case ActivateProgressMonitor(progressMonitor) =>
-      this.progressMonitor = progressMonitor
+  def handleAddNeighbourBodies(bodies: List[ActorRef], simulationController: ActorRef): Unit = {
+    managingActor = simulationController
+    neighbourBodiesCount = bodies.size
+    neighbourBodies = bodies
+    managingActor ! ActorReady()
+  }
 
-    case MakeSimulation() =>
-      initMove()
+  def handleMakeSimulation(): Unit = {
+    initMove()
+    sendUpdate()
+  }
+
+  def handleBodyDataUpdate(id: String, mass: BigDecimal, position: Vec2): Unit = {
+    receivedMessagesCounter += 1
+    bodies += id
+    applyForce(mass, position)
+    if(receivedMessagesCounter == neighbourBodiesCount) {
+      receivedMessagesCounter = 0
+      makeSimulationStep()
+      doOnSimulationStepAction(stepsCounter)
       sendUpdate()
-
-    case BodyDataUpdate(id, mass, position) if id != this.id =>
-      receivedMessagesCounter += 1
-      bodies += id
-      applyForce(mass, position)
-      if(receivedMessagesCounter == neighbourBodiesCount) {
-        receivedMessagesCounter = 0
-        makeSimulationStep()
-        doOnSimulationStepAction(stepsCounter)
-        sendUpdate()
-      }
+    }
   }
 
   def makeSimulationStep(): Unit = {

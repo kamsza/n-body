@@ -69,8 +69,8 @@ if __name__ == "__main__":
     y_lim = get_summary_axes_limits(cluster_data, 'y_lim')
     lim = get_axes_limits(x_lim, y_lim)
     ax = plt.axes(xlim=lim, ylim=lim)
-    scatter = ax.scatter([0] * points_count, [0] * points_count, s=10, color='blue')
     scatter_path = ax.scatter([0] * points_count, [0] * points_count, s=2, color=[.7, .7, 1])
+    scatter = ax.scatter([0] * points_count, [0] * points_count, s=10, color='blue')
 
     # make visualization
     steps = get_steps_count(cluster_data)
@@ -85,7 +85,7 @@ if __name__ == "__main__":
         prev_pos += curr_pos
         scatter_path.set_offsets(prev_pos)
 
-        return scatter_path, scatter
+        return scatter, scatter_path
 
     anim = FuncAnimation(fig, update, frames=steps, interval=200, repeat=False)
     plt.show()

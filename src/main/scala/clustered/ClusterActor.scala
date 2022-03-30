@@ -1,18 +1,17 @@
 package clustered
 
 import `object`.Object
-import clustered_common.AbstractClusterActor
+import clustered_common.{AbstractClusterActor, Body}
 import math.Vec2
 import message._
 
 import java.io.BufferedWriter
 import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
 
 class ClusterActor(
-                   id: String,
-                   bodies: ArrayBuffer[Body],
-                   resultsFileWriter: BufferedWriter)
+                    id: String,
+                    bodies: mutable.Set[Body],
+                    resultsFileWriter: BufferedWriter)
   extends AbstractClusterActor(id, bodies, resultsFileWriter) {
 
   val neighbourObjects: mutable.Map[String, ClusterDescriptor] = mutable.Map()

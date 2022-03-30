@@ -2,7 +2,6 @@ package clustered_common
 
 import `object`.Object
 import akka.actor.{Actor, ActorRef}
-import clustered.Body
 import constant.SimulationConstants
 import math.Vec2
 import message.{ClusterInitialized, ClusterReady, OneTenthDone, SimulationFinish}
@@ -10,6 +9,7 @@ import utils.CSVUtil.DELIMITER
 import utils.PhysicsUtil
 
 import java.io.BufferedWriter
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 abstract class AbstractClusterActor(
@@ -32,7 +32,7 @@ abstract class AbstractClusterActor(
 
   var progressMonitor: ActorRef = ActorRef.noSender
 
-  def this(id: String, bodies: ArrayBuffer[Body], resultsFileWriter: BufferedWriter) = {
+  def this(id: String, bodies: mutable.Set[Body], resultsFileWriter: BufferedWriter) = {
     this(id, PhysicsUtil.countSummaryMass(bodies), PhysicsUtil.countCenterOfMass(bodies), resultsFileWriter)
     this.bodies.addAll(bodies)
   }

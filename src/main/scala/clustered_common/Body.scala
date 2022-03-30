@@ -1,7 +1,6 @@
-package clustered
+package clustered_common
 
-import `object`.{AbstractBody, Object}
-import constant.Constants
+import `object`.AbstractBody
 import math.Vec2
 
 class Body(

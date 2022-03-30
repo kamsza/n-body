@@ -11,7 +11,7 @@ object SingleSimulator extends App {
 
   val system = ActorSystem("N-BodySystem")
 
-  val bodies = CSVUtil.loadBodies(inputFileName, outputDir, system)
+  val bodies = CSVUtil.loadBodiesActors(inputFileName, outputDir, system)
 
   val simulatorActor = system.actorOf(Props(classOf[SingleSimulatorActor]))
 

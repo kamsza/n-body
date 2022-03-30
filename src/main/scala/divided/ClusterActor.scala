@@ -1,18 +1,16 @@
 package divided
 
 import `object`.Object
-import clustered.Body
-import clustered_common.AbstractClusterActor
+import clustered_common.{AbstractClusterActor, Body}
 import math.Vec2
 import message.{ActivateProgressMonitor, AddNeighbourClusters, DividedDataUpdate, Initialize, MakeSimulation}
 
 import java.io.BufferedWriter
 import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
 
 class ClusterActor(
                     id: String,
-                    bodies: ArrayBuffer[Body],
+                    bodies: mutable.Set[Body],
                     resultsFileWriter: BufferedWriter)
   extends AbstractClusterActor(id, bodies, resultsFileWriter) {
 
