@@ -20,7 +20,7 @@ abstract class AbstractClusterActor(
                                      bodies: ArrayBuffer[Body] = ArrayBuffer[Body]())
   extends Object with Actor {
 
-  protected val  neighbourClusters: ArrayBuffer[ActorRef] = ArrayBuffer[ActorRef]()
+  protected val neighbourClusters: mutable.Set[ActorDescriptor] = mutable.Set[ActorDescriptor]()
 
   var stepsCounter: Int = SimulationConstants.simulationStepsCount
 
@@ -47,7 +47,7 @@ abstract class AbstractClusterActor(
     managingActor ! ClusterInitialized(id, position)
   }
 
-  def handleAddNeighbourClusters(clusters: Set[ActorRef]): Unit = {
+  def handleAddNeighbourClusters(clusters: Set[ActorDescriptor]): Unit = {
     neighbourClusters.addAll(clusters)
     managingActor ! ClusterReady()
   }
@@ -68,7 +68,7 @@ abstract class AbstractClusterActor(
   def neighbours: Set[Object]
 
   def updateBodiesPosition(): Unit = {
-    bodies.foreach(body => bodies.foreach(body.applyForce))
+    bodies.foreach(body => bodies.filter(b => b.id != body.id).foreach(body.applyForce))
     bodies.foreach(body => neighbours.foreach(body.applyForce))
     bodies.foreach(_.move())
   }

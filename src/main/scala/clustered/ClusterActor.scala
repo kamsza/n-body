@@ -24,7 +24,7 @@ class ClusterActor(
     case ClusterDataUpdate(id, mass, position) => handleClusterDataUpdate(id, mass, position)
   }
 
-  def sendUpdate(): Unit = neighbourClusters.foreach(_ ! ClusterDataUpdate(id, mass, position))
+  def sendUpdate(): Unit = neighbourClusters.foreach(_.actorRef ! ClusterDataUpdate(id, mass, position))
 
   def handleClusterDataUpdate(id: String, mass: BigDecimal, position: Vec2): Unit = {
     receivedMessagesCounter += 1

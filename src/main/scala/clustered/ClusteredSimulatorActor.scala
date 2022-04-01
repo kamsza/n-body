@@ -1,26 +1,34 @@
 package clustered
 
 import akka.actor.ActorRef
-import clustered_common.ClusterSimulationHandler
-import message.{AddNeighbourClusters, ClusterReady, SimulationFinish, SimulationStart}
+import clustered_common.{ActorDescriptor, ClusterSimulationHandler}
+import message.{AddNeighbourClusters, ClusterInitialized, ClusterReady, SimulationFinish, SimulationStart}
+
+import scala.collection.mutable
 
 case class ClusteredSimulatorActor() extends ClusterSimulationHandler {
 
+  var initializedClustersCounter = 0
+
+  val clusterObjects :mutable.Set[ActorDescriptor] = mutable.Set()
+
   override def receive: Receive = {
     case SimulationStart(clusters) => handleSimulationStart(clusters)
+    case ClusterInitialized(id, _) => handleClusterInitialized(id, sender())
     case ClusterReady() => handleActorReady()
     case SimulationFinish() => handleSimulationFinish()
   }
 
-  override def handleSimulationStart(clusters: List[ActorRef]): Unit = {
-    super.handleSimulationStart(clusters)
-    setNeighbours()
+  def handleClusterInitialized(id: String,  senderRef: ActorRef): Unit = {
+    clusterObjects.add(ActorDescriptor(id, senderRef))
+    initializedClustersCounter += 1
+    if(initializedClustersCounter == clusters.size) setNeighbours()
   }
 
   def setNeighbours(): Unit = {
-    clusters.foreach(cluster => {
-      val neighbourClusters = clusters.filterNot(_ == cluster)
-      cluster ! AddNeighbourClusters(neighbourClusters.toSet)
+    clusterObjects.foreach(cluster => {
+      val neighbourClusters = clusterObjects.filterNot(_ == cluster).toSet
+      cluster.actorRef ! AddNeighbourClusters(neighbourClusters)
     })
   }
 }

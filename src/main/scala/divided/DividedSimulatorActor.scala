@@ -1,7 +1,7 @@
 package divided
 
 import akka.actor.ActorRef
-import clustered_common.ClusterSimulationHandler
+import clustered_common.{ActorDescriptor, ClusterSimulationHandler}
 import constant.Constants
 import math.Vec2
 import message.{AddNeighbourClusters, ClusterInitialized, ClusterReady, SimulationFinish, SimulationStart}
@@ -12,7 +12,7 @@ case class DividedSimulatorActor() extends ClusterSimulationHandler {
 
   var initializedClustersCounter = 0
 
-  val clusterObjects :mutable.Set[ObjectDescriptor] = mutable.Set()
+  val clusterObjects :mutable.Set[ClusterActorDescriptor] = mutable.Set()
 
   override def receive: Receive = {
     case SimulationStart(clusters) => handleSimulationStart(clusters)
@@ -22,7 +22,7 @@ case class DividedSimulatorActor() extends ClusterSimulationHandler {
   }
 
   def handleClusterInitialized(id: String, position: Vec2, senderRef: ActorRef): Unit = {
-    clusterObjects.add(ObjectDescriptor(id, position, senderRef))
+    clusterObjects.add(ClusterActorDescriptor(id, position, senderRef))
     initializedClustersCounter += 1
     if(initializedClustersCounter == clusters.size) setNeighbours()
   }
@@ -32,8 +32,9 @@ case class DividedSimulatorActor() extends ClusterSimulationHandler {
       val neighbourClusters = clusterObjects
         .filterNot(c => cluster.equals(c))
         .filter(c => cluster.position.distance(c.position) < Constants.neighbourDistance)
-        .map(c => c.actorRef)
-      cluster.actorRef ! AddNeighbourClusters(neighbourClusters.toSet)
+        .map(c => ActorDescriptor(c.id, c.actorRef))
+        .toSet
+      cluster.actorRef ! AddNeighbourClusters(neighbourClusters)
     })
   }
 }

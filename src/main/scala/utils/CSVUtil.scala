@@ -70,7 +70,7 @@ object CSVUtil {
     if (!dir.exists || !dir.isDirectory) throw new IllegalArgumentException(s"Resource directory '${resourceDir}' not found")
     val resourceNames = dir.listFiles.filter(_.isFile).toList
     for (resourceName <- resourceNames) {
-      val clusterName = resourceName.getName.replace(".txt", "")
+      val clusterName = resourceName.getName.replace(".txt", "").replace(".csv", "")
       val resourcePath = new File(resourceDir, resourceName.getName).toString
       clusters += system.actorOf(
         Props(

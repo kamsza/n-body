@@ -1,5 +1,5 @@
 package message
 
-import akka.actor.ActorRef
+import clustered_common.ActorDescriptor
 
-case class AddNeighbourClusters(clusters: Set[ActorRef])
+case class AddNeighbourClusters(clusters: Set[ActorDescriptor])
