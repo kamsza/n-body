@@ -6,6 +6,7 @@ from os.path import isfile, join, abspath
 from operator import iconcat
 from functools import reduce
 from matplotlib.animation import FuncAnimation
+import math
 
 RESULTS_DIR = "../results/"
 CSV_DELIMITER = ';'
@@ -16,7 +17,7 @@ class ClusterData:
         self.data_count = self.df['id'].nunique()
         self.x_lim = self._get_axes_limits('pos_x')
         self.y_lim = self._get_axes_limits('pos_y')
-        print(self.df)
+        # print(self.df)
 
 
     def _get_axes_limits(self, prop_name):
@@ -50,6 +51,21 @@ def get_steps_count(cluster_data):
             raise Exception(f"Different number of steps in clusters expected ${steps_count} got: ${cluster.get_steps_count()}")
     return steps_count
 
+def update_limit(curr_pos, ax):
+    x = [pos[0] for pos in curr_pos]
+    y = [pos[1] for pos in curr_pos]
+    lim = max([round_up_abs(min(x)), round_up_abs(max(x)), round_up_abs(min(y)), round_up_abs(max(y))])
+    old_lim = max([abs(ax.get_ylim()[0]), abs(ax.get_ylim()[1]), abs(ax.get_xlim()[0]), abs(ax.get_xlim()[0])])
+    if old_lim < lim:
+        ax.set_xlim(-1*lim, lim)
+        ax.set_ylim(-1*lim, lim)
+
+def round_up_abs(num):
+    digits = int(math.log10(abs(num)))
+    first_digit = abs(int(1.2 * num / pow(10, digits)))
+    first_digit += 2 if first_digit > 0 else -2
+    return first_digit * pow(10, digits)
+
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Specify the dir path as an argument to the program")
@@ -68,7 +84,7 @@ if __name__ == "__main__":
     x_lim = get_summary_axes_limits(cluster_data, 'x_lim')
     y_lim = get_summary_axes_limits(cluster_data, 'y_lim')
     lim = get_axes_limits(x_lim, y_lim)
-    ax = plt.axes(xlim=lim, ylim=lim)
+    ax = plt.axes()
     scatter_path = ax.scatter([0] * points_count, [0] * points_count, s=2, color=[.7, .7, 1])
     scatter = ax.scatter([0] * points_count, [0] * points_count, s=10, color='blue')
 
@@ -77,13 +93,15 @@ if __name__ == "__main__":
     prev_pos = []
 
     def update(frame):
-        global prev_pos, steps, cluster_data
+        global prev_pos, steps, cluster_data, ax
 
         curr_pos = reduce(iconcat, [cluster.get_positions(frame) for cluster in cluster_data], [])
         scatter.set_offsets(curr_pos)
 
         prev_pos += curr_pos
         scatter_path.set_offsets(prev_pos)
+
+        update_limit(curr_pos, ax)
 
         return scatter, scatter_path
 
