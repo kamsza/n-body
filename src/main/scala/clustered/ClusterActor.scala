@@ -28,8 +28,8 @@ class ClusterActor(
 
   def handleClusterDataUpdate(id: String, mass: BigDecimal, position: Vec2): Unit = {
     receivedMessagesCounter += 1
-    neighbourObjects += (id -> ClusterDescriptor(id, mass, position))             // TODO: additionally check message id
-    if(receivedMessagesCounter == neighbourClusters.size) {                       // TODO: additionally check timestamp between last msg and current, if is big, update
+    neighbourObjects += (id -> ClusterDescriptor(id, mass, position))
+    if(receivedMessagesCounter == neighbourClusters.size) {
       receivedMessagesCounter = 0
       makeSimulationStep()
       doOnSimulationStepAction(stepsCounter)

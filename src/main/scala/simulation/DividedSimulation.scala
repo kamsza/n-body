@@ -8,7 +8,7 @@ import divided.ClusterActor
 
 object DividedSimulation extends App {
   val inputDir = "/solar_systems"
-  val outputDir = "results/solar_systems"
+  val outputDir = "results/solar_systems2"
 
   val system = ActorSystem("N-BodySystem")
 

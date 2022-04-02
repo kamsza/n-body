@@ -69,7 +69,7 @@ abstract class AbstractClusterActor(
 
   def updateBodiesPosition(): Unit = {
     bodies.foreach(body => bodies.filter(b => b.id != body.id).foreach(body.applyForce))
-    bodies.foreach(body => neighbours.foreach(body.applyForce))
+    bodies.foreach(body => neighbours.filter(n => n.id != this.id).foreach(body.applyForce))
     bodies.foreach(_.move())
   }
 
