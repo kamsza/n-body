@@ -76,7 +76,7 @@ class BodyActor(
 
   def doOnSimulationStepAction(stepsCounter: Int): Unit = {
     if(stepsCounter % SimulationConstants.communicationStep == 0) writeDataToFile()
-    if(stepsCounter % progressMarker == 0) progressMonitor ! OneTenthDone()
+    if(stepsCounter % progressMarker == 0) progressMonitor ! OneTenthDone(id)
     if(stepsCounter == 0) finish()
   }
 

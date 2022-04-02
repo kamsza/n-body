@@ -4,7 +4,7 @@ import akka.actor.ActorRef
 import clustered_common.{ActorDescriptor, ClusterSimulationHandler}
 import constant.Constants
 import math.Vec2
-import message.{AddNeighbourClusters, ClusterInitialized, ClusterReady, SimulationFinish, SimulationStart}
+import message.{AddNeighbourClusters, ClusterInitialized, ClusterReady, ProgressMonitorInitialize, SimulationFinish, SimulationStart}
 
 import scala.collection.mutable
 
@@ -24,8 +24,16 @@ case class DividedSimulatorActor() extends ClusterSimulationHandler {
   def handleClusterInitialized(id: String, position: Vec2, senderRef: ActorRef): Unit = {
     clusterObjects.add(ClusterActorDescriptor(id, position, senderRef))
     initializedClustersCounter += 1
-    if(initializedClustersCounter == clusters.size) setNeighbours()
+    if(initializedClustersCounter == clusters.size) {
+      afterClustersInitialize()
+      setNeighbours()
+    }
   }
+
+  def afterClustersInitialize(): Unit = {
+    progressMonitor ! ProgressMonitorInitialize(clusterObjects.map(c => c.id).toSet)
+  }
+
 
   def setNeighbours(): Unit = {
     clusterObjects.foreach(cluster => {

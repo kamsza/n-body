@@ -1,3 +1,3 @@
 package message
 
-case class OneTenthDone()
+case class OneTenthDone(id: String)
