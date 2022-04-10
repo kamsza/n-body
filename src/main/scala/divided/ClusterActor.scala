@@ -2,7 +2,6 @@ package divided
 
 import `object`.Object
 import clustered_common.{AbstractClusterActor, Body}
-import math.Vec2
 import message.{ActivateProgressMonitor, AddNeighbourClusters, DividedDataUpdate, Initialize, MakeSimulation}
 
 import java.io.BufferedWriter
@@ -26,7 +25,9 @@ class ClusterActor(
     case DividedDataUpdate(clusters) => handleClusterDataUpdate(clusters)
   }
 
-  override def sendUpdate(): Unit = neighbourClusters.foreach(_.actorRef ! DividedDataUpdate(clusters.values.toSet))
+  override def sendUpdate(): Unit = {
+    neighbourClusters.foreach(_.actorRef ! DividedDataUpdate(clusters.values.toSet))
+  }
 
   def handleClusterDataUpdate(clustersUpdate: Set[ClusterDescriptor]): Unit = {
     receivedMessagesCounter += 1
@@ -37,17 +38,22 @@ class ClusterActor(
           cD.position = cluster.position
           cD.timestamp = cluster.timestamp
         case Some(_: ClusterDescriptor) => // nothing to do
-        case None => clusters += (id -> ClusterDescriptor(cluster.id, cluster.mass, cluster.position, cluster.timestamp))
+        case None => clusters += (cluster.id -> ClusterDescriptor(cluster.id, cluster.mass, cluster.position, cluster.timestamp))
       }
     })
 
-    if(receivedMessagesCounter == neighbourClusters.size) {                       // TODO: additionally check timestamp between last msg and current, if is big, update
+    if(receivedMessagesCounter == neighbourClusters.size) {
       receivedMessagesCounter = 0
       makeSimulationStep()
       updateDescriptor()
       doOnSimulationStepAction(stepsCounter)
       sendUpdate()
     }
+  }
+
+  override def makeSimulationStep(): Unit = {
+    super.makeSimulationStep()
+    timestamp += 1
   }
 
   def updateDescriptor(): Unit = {

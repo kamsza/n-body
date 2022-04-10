@@ -8,7 +8,7 @@ import clustered.ClusterActor
 
 object ClusteredSimulator extends App {
   val inputDir = "/solar_systems"
-  val outputDir = "results/solar_systems"
+  val outputDir = "results/clustered_ss"
 
   val system = ActorSystem("N-BodySystem")
 

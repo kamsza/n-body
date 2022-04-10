@@ -24,7 +24,7 @@ object CSVUtil {
     var bodyId = 0
     val bodies = ArrayBuffer[ActorRef]()
     val bufferedSource = createBufferedSource(resourceName)
-    for (line <- bufferedSource.getLines) {
+    for (line <- bufferedSource.getLines.drop(1)) {
       val cols = line.split(DELIMITER).map(_.trim)
       bodies += system.actorOf(
         Props(classOf[BodyActor],

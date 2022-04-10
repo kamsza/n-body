@@ -29,7 +29,7 @@ abstract class AbstractBody(
 
   def countMassDistanceDiffVec(mass: BigDecimal, position: Vec2): Vec2 = {
     val distance = this.position.distance(position)
-    val massDistanceDiff = mass / (distance * distance + Constants.e)
+    val massDistanceDiff = mass / (distance * distance + SimulationConstants.softeningParameter)
     val unitDirection = (position - this.position) / distance
 
     unitDirection * massDistanceDiff
