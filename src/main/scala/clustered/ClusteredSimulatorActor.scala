@@ -1,7 +1,8 @@
 package clustered
 
 import akka.actor.ActorRef
-import clustered_common.{ActorDescriptor, ClusterSimulationHandler}
+import clustered_common.ClusterSimulationHandler
+import common.ActorDescriptor
 import message.{AddNeighbourClusters, ClusterInitialized, ClusterReady, ProgressMonitorInitialize, SimulationFinish, SimulationStart}
 
 import scala.collection.mutable
@@ -20,7 +21,7 @@ case class ClusteredSimulatorActor() extends ClusterSimulationHandler {
   }
 
   def handleClusterInitialized(id: String,  senderRef: ActorRef): Unit = {
-    clusterObjects.add(ActorDescriptor(id, senderRef))
+    clusterObjects.add(common.ActorDescriptor(id, senderRef))
     initializedClustersCounter += 1
     if(initializedClustersCounter == clusters.size) {
       afterClustersInitialize()

@@ -6,7 +6,7 @@ import single.SingleSimulatorActor
 import utils.CSVUtil
 
 object SingleSimulator extends App {
-  val inputFileName = "solar_systems.txt"
+  val inputFileName = "/solar_systems.txt"
   val outputDir = "results/single_ss"
 
   val system = ActorSystem("N-BodySystem")

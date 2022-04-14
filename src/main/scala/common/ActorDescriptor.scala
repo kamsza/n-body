@@ -1,4 +1,4 @@
-package clustered_common
+package common
 
 import akka.actor.ActorRef
 

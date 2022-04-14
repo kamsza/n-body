@@ -18,7 +18,7 @@ class BodyActor(
                  resultsFileWriter: BufferedWriter)
   extends AbstractBody(id, mass, startPosition, startVelocity) with Actor  {
 
-  var neighbourBodies: List[ActorRef] = null
+  var neighbourBodies: Set[ActorRef] = null
 
   var bodies: mutable.Set[String] = mutable.Set()
 
@@ -45,7 +45,7 @@ class BodyActor(
     case BodyDataUpdate(id, mass, position) if id != this.id => handleBodyDataUpdate(id, mass, position)
   }
 
-  def handleAddNeighbourBodies(bodies: List[ActorRef], simulationController: ActorRef): Unit = {
+  def handleAddNeighbourBodies(bodies: Set[ActorRef], simulationController: ActorRef): Unit = {
     managingActor = simulationController
     neighbourBodiesCount = bodies.size
     neighbourBodies = bodies

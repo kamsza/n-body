@@ -9,7 +9,7 @@ import scala.collection.mutable
 
 class ClusterActor(
                     id: String,
-                    bodies: mutable.Set[Body],
+                    bodies: Set[Body],
                     resultsFileWriter: BufferedWriter)
   extends AbstractClusterActor(id, bodies, resultsFileWriter) {
 

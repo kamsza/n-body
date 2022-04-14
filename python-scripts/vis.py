@@ -76,6 +76,9 @@ if __name__ == "__main__":
     else:
         dir_path = join(RESULTS_DIR, sys.argv[1])
         files = [abspath(join(dir_path, f)) for f in listdir(dir_path) if isfile(join(dir_path, f))]
+
+    interval = 200 if len(sys.argv) < 3 else int(sys.argv[2])
+
     cluster_data = [ClusterData(file) for file in files]
     points_count = get_points_count(cluster_data)
 
@@ -105,5 +108,5 @@ if __name__ == "__main__":
 
         return scatter, scatter_path
 
-    anim = FuncAnimation(fig, update, frames=steps, interval=200, repeat=False)
+    anim = FuncAnimation(fig, update, frames=steps, interval=interval, repeat=False)
     plt.show()

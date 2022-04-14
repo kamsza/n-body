@@ -1,5 +1,5 @@
 package message
 
-import clustered_common.ActorDescriptor
+import common.ActorDescriptor
 
 case class UpdateNeighbourList(newNeighbours: Set[ActorDescriptor], farNeighbours: Set[ActorDescriptor])

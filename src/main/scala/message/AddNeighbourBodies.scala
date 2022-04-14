@@ -2,4 +2,4 @@ package message
 
 import akka.actor.ActorRef
 
-case class AddNeighbourBodies(bodies: List[ActorRef], simulationController: ActorRef)
+case class AddNeighbourBodies(bodies: Set[ActorRef], simulationController: ActorRef)

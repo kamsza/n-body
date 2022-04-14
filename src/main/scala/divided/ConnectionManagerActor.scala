@@ -2,7 +2,7 @@ package divided
 
 import akka.actor.{Actor, ActorRef}
 import akka.event.Logging
-import clustered_common.ActorDescriptor
+import common.ActorDescriptor
 import constant.Constants
 import math.Vec2
 import message.{ClusterNeighbourNetworkUpdate, ConnectionManagerInitialize, SimulationFinish, UpdateNeighbourList}
@@ -30,14 +30,14 @@ case class ConnectionManagerActor() extends Actor {
     val newNeighbours = positions.filterNot(v => v._1 == id)
       .filterNot(v => neighbours.contains(v._1))
       .filter(v => position.distance(v._2) < Constants.neighbourDistance)
-      .map(v => ActorDescriptor(v._1, actors.getOrElse(v._1, throw new RuntimeException("ConnectionManagerActor: actor not found in actors map"))))
+      .map(v => common.ActorDescriptor(v._1, actors.getOrElse(v._1, throw new RuntimeException("ConnectionManagerActor: actor not found in actors map"))))
       .toSet
 
     val farNeighbourDist = 1.1 * Constants.neighbourDistance
     val farNeighbours = positions.filterNot(v => v._1 == id)
       .filter(v => neighbours.contains(v._1))
       .filter(v => position.distance(v._2) > farNeighbourDist)
-      .map(v => ActorDescriptor(v._1, actors.getOrElse(v._1, throw new RuntimeException("ConnectionManagerActor: actor not found in actors map"))))
+      .map(v => common.ActorDescriptor(v._1, actors.getOrElse(v._1, throw new RuntimeException("ConnectionManagerActor: actor not found in actors map"))))
       .toSet
 
     if(newNeighbours.nonEmpty || farNeighbours.nonEmpty) {

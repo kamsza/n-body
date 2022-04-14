@@ -1,5 +1,5 @@
 package message
 
-import akka.actor.ActorRef
+import common.ActorDescriptor
 
-case class SimulationStart(clusters: List[ActorRef])
+case class SimulationStart(clusters: Set[ActorDescriptor])

@@ -2,6 +2,7 @@ package clustered_common
 
 import `object`.Object
 import akka.actor.{Actor, ActorRef}
+import common.ActorDescriptor
 import constant.SimulationConstants
 import math.Vec2
 import message.{ClusterInitialized, ClusterReady, OneTenthDone, SimulationFinish}
@@ -10,14 +11,13 @@ import utils.PhysicsUtil
 
 import java.io.BufferedWriter
 import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
 
 abstract class AbstractClusterActor(
                                      override val id: String,
                                      override val mass: BigDecimal,
                                      var position: Vec2,
-                                     resultsFileWriter: BufferedWriter,
-                                     bodies: ArrayBuffer[Body] = ArrayBuffer[Body]())
+                                     bodies: Set[Body],
+                                     resultsFileWriter: BufferedWriter)
   extends Object with Actor {
 
   protected val neighbourClusters: mutable.Set[ActorDescriptor] = mutable.Set[ActorDescriptor]()
@@ -32,9 +32,8 @@ abstract class AbstractClusterActor(
 
   var progressMonitor: ActorRef = ActorRef.noSender
 
-  def this(id: String, bodies: mutable.Set[Body], resultsFileWriter: BufferedWriter) = {
-    this(id, PhysicsUtil.countSummaryMass(bodies), PhysicsUtil.countCenterOfMass(bodies), resultsFileWriter)
-    this.bodies.addAll(bodies)
+  def this(id: String, bodies: Set[Body], resultsFileWriter: BufferedWriter) = {
+    this(id, PhysicsUtil.countSummaryMass(bodies), PhysicsUtil.countCenterOfMass(bodies), bodies, resultsFileWriter)
   }
 
   def setProgressMonitor(progressMonitor: ActorRef) :Unit = {
@@ -96,7 +95,9 @@ abstract class AbstractClusterActor(
 
   @Override
   def toList: List[(String, BigDecimal, BigDecimal, BigDecimal, BigDecimal, BigDecimal)] = {
-    bodies.sortBy(body => body.id).map(body => body.toTuple).toList
+    bodies.toList
+      .sortBy(body => body.id)
+      .map(body => body.toTuple)
   }
 
   override def toString: String = bodies.map(body => body.toString).mkString("\n")
