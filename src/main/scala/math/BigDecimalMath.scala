@@ -8,8 +8,6 @@ object BigDecimalMath {
 
   val mathContext: MathContext = MathContext.DECIMAL128
 
-  def round(value: java.math.BigDecimal): BigDecimal = value.round(mathContext)
-
   def sqrt(value: BigDecimal): BigDecimal = {
     val x = value.bigDecimal
     x.signum match {
@@ -37,4 +35,6 @@ object BigDecimalMath {
     }
     round(result)
   }
+
+  def round(value: java.math.BigDecimal): BigDecimal = value.round(mathContext)
 }

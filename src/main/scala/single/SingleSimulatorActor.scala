@@ -1,8 +1,8 @@
 package single
 
-import akka.actor.{Actor, ActorRef, Props}
+import akka.actor.{ActorRef, Props}
 import common.{ActorDescriptor, SimulationHandler}
-import message.{ActivateProgressMonitor, ActorReady, AddNeighbourBodies, AddSimulationController, MakeSimulation, ProgressMonitorInitialize, SayHello, SimulationFinish, SimulationStart}
+import message._
 import utils.ProgressMonitor
 
 case class SingleSimulatorActor() extends SimulationHandler {
@@ -22,7 +22,7 @@ case class SingleSimulatorActor() extends SimulationHandler {
   def handleSimulationStart(bodies: Set[ActorDescriptor]): Unit = {
     this.bodies = bodies
 
-    val progressMonitor = context.actorOf(Props(classOf[ProgressMonitor], bodies.size), "progress_monitor")
+    val progressMonitor = context.actorOf(Props(classOf[ProgressMonitor]), "progress_monitor")
     progressMonitor ! ProgressMonitorInitialize(bodies.map(b => b.id))
 
     bodies.foreach(body => {

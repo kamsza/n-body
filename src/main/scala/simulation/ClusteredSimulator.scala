@@ -1,10 +1,9 @@
 package simulation
 
 import akka.actor.{ActorSystem, Props}
-import clustered.ClusteredSimulatorActor
+import clustered.{ClusterActor, ClusteredSimulatorActor}
 import message.SimulationStart
 import utils.CSVUtil
-import clustered.ClusterActor
 
 object ClusteredSimulator extends App {
   val inputDir = "/solar_systems"

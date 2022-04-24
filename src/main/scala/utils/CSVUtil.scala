@@ -1,6 +1,6 @@
 package utils
 
-import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.actor.{ActorSystem, Props}
 import clustered_common.Body
 import common.ActorDescriptor
 import math.Vec2
@@ -16,15 +16,6 @@ object CSVUtil {
   val DELIMITER = ";"
 
   val outputDir = "results/"
-
-  def bodyDataDescription: String = List(
-    "id",
-    "\"mass [kg]\"",
-    "\"position x [m]\"",
-    "\"position y [m]\"",
-    "\"velocity x [m/s]\"",
-    "\"velocity y [m/s]\""
-  ).mkString(DELIMITER)
 
   def loadBodiesActors(resourceName: String, outputDir: String, system: ActorSystem): Set[ActorDescriptor] = {
     var bodyIdx = 0
@@ -54,6 +45,12 @@ object CSVUtil {
     ActorDescriptor(bodyId, actor)
   }
 
+  def loadClusterBodies(resourceName: String, clusterId: String, shiftVector: Vec2): Set[Body] = {
+    val bodies = loadClusterBodies(resourceName, clusterId)
+    bodies.foreach(_.changePosition(shiftVector))
+    bodies
+  }
+
   def loadClusterBodies(resourceName: String, clusterId: String): Set[Body] = {
     var bodyIdx = 0
     val bodies = mutable.Set[Body]()
@@ -77,10 +74,12 @@ object CSVUtil {
     )
   }
 
-  def loadClusterBodies(resourceName: String, clusterId: String, shiftVector: Vec2): Set[Body] = {
-    val bodies = loadClusterBodies(resourceName, clusterId)
-    bodies.foreach(_.changePosition(shiftVector))
-    bodies
+  def createBufferedSource(resourcePath: String): Source = {
+    try {
+      Source.fromFile(resourcePath)
+    } catch {
+      case _: NullPointerException => throw new IllegalArgumentException(s"Cannot find resource: ${resourcePath}")
+    }
   }
 
   def loadClusters(resourceDir: String, outputDir: String, system: ActorSystem, T: Class[_]): Set[ActorDescriptor] = {
@@ -108,19 +107,11 @@ object CSVUtil {
     ActorDescriptor(clusterId, actor)
   }
 
-  def createBufferedSource(resourcePath: String): Source = {
-    try {
-      Source.fromFile(resourcePath)
-    } catch {
-      case _: NullPointerException => throw new IllegalArgumentException(s"Cannot find resource: ${resourcePath}")
-    }
-  }
-
   def initCsvFile(dirPath: Path, csvFileName: String): BufferedWriter = {
     val path = Paths.get(dirPath.toString, csvFileName)
-    if(path.toFile.exists()) {
+    if (path.toFile.exists()) {
       path.toFile.delete()
-    } else if(!dirPath.toFile.exists()) {
+    } else if (!dirPath.toFile.exists()) {
       dirPath.toFile.mkdir()
     }
     val fileWriter = new BufferedWriter(new FileWriter(path.toFile))
@@ -129,7 +120,16 @@ object CSVUtil {
     fileWriter
   }
 
-  def getResourcePath(resourceName: String) :String = {
+  def bodyDataDescription: String = List(
+    "id",
+    "\"mass [kg]\"",
+    "\"position x [m]\"",
+    "\"position y [m]\"",
+    "\"velocity x [m/s]\"",
+    "\"velocity y [m/s]\""
+  ).mkString(DELIMITER)
+
+  def getResourcePath(resourceName: String): String = {
     val resourceRelativePath = if (resourceName.startsWith("/")) resourceName else "/" + resourceName
     getClass.getResource(resourceRelativePath).getPath
   }

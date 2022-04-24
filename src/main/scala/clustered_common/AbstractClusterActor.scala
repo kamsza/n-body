@@ -16,27 +16,22 @@ abstract class AbstractClusterActor(
                                      override val id: String,
                                      override val mass: BigDecimal,
                                      var position: Vec2,
-                                     bodies: Set[Body],
+                                     var bodies: Set[Body],
                                      resultsFileWriter: BufferedWriter)
   extends Object with Actor {
 
-  protected val neighbourClusters: mutable.Set[ActorDescriptor] = mutable.Set[ActorDescriptor]()
-
-  var stepsCounter: Int = SimulationConstants.simulationStepsCount
-
-  var managingActor: ActorRef = ActorRef.noSender
-
-  var receivedMessagesCounter: Int = 0
-
   val progressMarker: Int = Math.max(1, (SimulationConstants.simulationStepsCount / 10).floor.toInt)
-
+  protected val neighbourClusters: mutable.Set[ActorDescriptor] = mutable.Set[ActorDescriptor]()
+  var stepsCounter: Int = SimulationConstants.simulationStepsCount
+  var managingActor: ActorRef = ActorRef.noSender
+  var receivedMessagesCounter: Int = 0
   var progressMonitor: ActorRef = ActorRef.noSender
 
   def this(id: String, bodies: Set[Body], resultsFileWriter: BufferedWriter) = {
     this(id, PhysicsUtil.countSummaryMass(bodies), PhysicsUtil.countCenterOfMass(bodies), bodies, resultsFileWriter)
   }
 
-  def setProgressMonitor(progressMonitor: ActorRef) :Unit = {
+  def setProgressMonitor(progressMonitor: ActorRef): Unit = {
     this.progressMonitor = progressMonitor
   }
 
@@ -62,20 +57,22 @@ abstract class AbstractClusterActor(
     position = countCenterOfMass()
   }
 
-  def sendUpdate(): Unit
-
-  def neighbours: Set[Object]
-
   def updateBodiesPosition(): Unit = {
     bodies.foreach(body => bodies.filter(b => b.id != body.id).foreach(body.applyForce))
     bodies.foreach(body => neighbours.filter(n => n.id != this.id).foreach(body.applyForce))
     bodies.foreach(_.move())
   }
 
+  def countCenterOfMass(): Vec2 = PhysicsUtil.countCenterOfMass(bodies)
+
+  def sendUpdate(): Unit
+
+  def neighbours: Set[Object]
+
   def doOnSimulationStepAction(stepsCounter: Int): Unit = {
-    if(stepsCounter % SimulationConstants.communicationStep == 0) writeDataToFile()
-    if(stepsCounter % progressMarker == 0) progressMonitor ! OneTenthDone(id)
-    if(stepsCounter == 0) finish()
+    if (stepsCounter % SimulationConstants.communicationStep == 0) writeDataToFile()
+    if (stepsCounter % progressMarker == 0) progressMonitor ! OneTenthDone(id)
+    if (stepsCounter == 0) finish()
   }
 
   def writeDataToFile(): Unit = {
@@ -86,8 +83,11 @@ abstract class AbstractClusterActor(
     resultsFileWriter.write(s"\n${dataString}")
   }
 
-
-  def countCenterOfMass(): Vec2 = PhysicsUtil.countCenterOfMass(bodies)
+  def finish(): Unit = {
+    resultsFileWriter.close()
+    managingActor ! SimulationFinish()
+    context.stop(self)
+  }
 
   def countSummaryMass(): BigDecimal = PhysicsUtil.countSummaryMass(bodies)
 
@@ -101,10 +101,4 @@ abstract class AbstractClusterActor(
   }
 
   override def toString: String = bodies.map(body => body.toString).mkString("\n")
-
-  def finish(): Unit = {
-    resultsFileWriter.close()
-    managingActor ! SimulationFinish()
-    context.stop(self)
-  }
 }

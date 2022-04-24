@@ -1,8 +1,10 @@
 package clustered
 
-import math.Vec2
 import `object`.Object
+import math.Vec2
 
 case class ClusterDescriptor(id: String,
                              mass: BigDecimal,
-                             _position: Vec2) extends Object {override var position: Vec2 = _position}
+                             _position: Vec2) extends Object {
+  override var position: Vec2 = _position
+}

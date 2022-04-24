@@ -1,15 +1,11 @@
 package divided
 
 import akka.actor.{Actor, ActorRef}
-import akka.event.Logging
-import common.ActorDescriptor
 import constant.Constants
 import math.Vec2
 import message.{ClusterNeighbourNetworkUpdate, ConnectionManagerInitialize, SimulationFinish, UpdateNeighbourList}
 
 case class ConnectionManagerActor() extends Actor {
-
-  val log = Logging(context.system, this)
 
   var actors: Map[String, ActorRef] = null
 
@@ -40,7 +36,7 @@ case class ConnectionManagerActor() extends Actor {
       .map(v => common.ActorDescriptor(v._1, actors.getOrElse(v._1, throw new RuntimeException("ConnectionManagerActor: actor not found in actors map"))))
       .toSet
 
-    if(newNeighbours.nonEmpty || farNeighbours.nonEmpty) {
+    if (newNeighbours.nonEmpty || farNeighbours.nonEmpty) {
       actors.get(id).collectFirst(a => a ! UpdateNeighbourList(newNeighbours, farNeighbours))
     }
   }

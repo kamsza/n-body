@@ -1,10 +1,9 @@
 package simulation
 
 import akka.actor.{ActorSystem, Props}
-import divided.DividedSimulatorActor
+import divided.{ClusterActor, DividedSimulatorActor}
 import message.SimulationStart
 import utils.CSVUtil
-import divided.ClusterActor
 
 object DividedSimulation extends App {
   val inputDir = "/solar_systems"

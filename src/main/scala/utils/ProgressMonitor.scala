@@ -2,11 +2,11 @@ package utils
 
 import akka.actor.Actor
 import constant.SimulationConstants
-import message.{OneTenthDone, ProgressMonitorInitialize, SayHello}
+import message.{OneTenthDone, ProgressMonitorInitialize}
 
 import scala.collection.mutable
 
-case class ProgressMonitor(actorsCount: Int) extends Actor {
+case class ProgressMonitor() extends Actor {
 
   val markersCount = 10
 
@@ -18,8 +18,6 @@ case class ProgressMonitor(actorsCount: Int) extends Actor {
 
   var receivedIds: mutable.SortedSet[String] = mutable.SortedSet()
 
-  def partsToDo: Int = markersCount - partsDone
-
   override def receive: Receive = {
     case ProgressMonitorInitialize(actorIds) => handleProgressMonitorInitialize(actorIds)
     case OneTenthDone(id) => handleTenthDone(id)
@@ -27,21 +25,22 @@ case class ProgressMonitor(actorsCount: Int) extends Actor {
 
   def handleProgressMonitorInitialize(actorIds: Set[String]): Unit = {
     this.actorIds = actorIds
-    println(s"""simulation configuration
+    println(
+      s"""simulation configuration
       - steps count: ${SimulationConstants.simulationStepsCount}
       - dt: ${SimulationConstants.dt}
       - save data step: ${SimulationConstants.communicationStep}""")
   }
 
   def handleTenthDone(id: String): Unit = {
-    if(receivedIds.contains(id)) {
+    if (receivedIds.contains(id)) {
       println("----------------------- WARNING -----------------------")
       println(s"| Actor with id ${id} is way ahead others")
       println(s"| Received info from: ${receivedIds.mkString(", ")}")
     }
 
     receivedIds += id
-    if(receivedIds.equals(actorIds)) {
+    if (receivedIds.equals(actorIds)) {
       receivedIds.clear()
       receivedCounter = 0
       updateProgress()
@@ -54,8 +53,10 @@ case class ProgressMonitor(actorsCount: Int) extends Actor {
     println(s"[${"X" * partsDone}${"-" * partsToDo}] ${partsDone}/${markersCount}")
   }
 
-  def checkFinish():Unit = {
-    if(partsDone == markersCount) {
+  def partsToDo: Int = markersCount - partsDone
+
+  def checkFinish(): Unit = {
+    if (partsDone == markersCount) {
       context.stop(self)
     }
   }

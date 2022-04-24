@@ -24,7 +24,7 @@ abstract class AbstractBody(
   }
 
   def applyForce(mass: BigDecimal, position: Vec2): Unit = {
-      bodiesMassDistanceDiffSum += countMassDistanceDiffVec(mass, position)
+    bodiesMassDistanceDiffSum += countMassDistanceDiffVec(mass, position)
   }
 
   def countMassDistanceDiffVec(mass: BigDecimal, position: Vec2): Vec2 = {
@@ -35,16 +35,16 @@ abstract class AbstractBody(
     unitDirection * massDistanceDiff
   }
 
-  def countAcceleration(): Vec2 = bodiesMassDistanceDiffSum * Constants.G
-
-  def resetAcceleration(): Unit = this.bodiesMassDistanceDiffSum = Vec2(BigDecimal("0"), BigDecimal("0"))
-
   def initMove(): Unit = {
     val acceleration = countAcceleration()
     this.position += this.velocity * SimulationConstants.dt + acceleration * Math.pow(SimulationConstants.dt, 2) * 0.5
     this.velocity += acceleration * SimulationConstants.dt * 0.5
     resetAcceleration()
   }
+
+  def countAcceleration(): Vec2 = bodiesMassDistanceDiffSum * Constants.G
+
+  def resetAcceleration(): Unit = this.bodiesMassDistanceDiffSum = Vec2(BigDecimal("0"), BigDecimal("0"))
 
   def move(): Unit = {
     val acceleration = countAcceleration()

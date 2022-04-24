@@ -3,8 +3,6 @@ package utils
 import clustered_common.Body
 import math.Vec2
 
-import scala.collection.mutable.ArrayBuffer
-
 object PhysicsUtil {
   def countCenterOfMass(bodies: Iterable[Body]): Vec2 = {
     val startElement = (BigDecimal("0"), Vec2(BigDecimal("0"), BigDecimal("0")))

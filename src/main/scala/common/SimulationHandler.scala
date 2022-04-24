@@ -28,7 +28,7 @@ abstract class SimulationHandler extends Actor {
 
   def handleSimulationFinish(): Unit = {
     finishedActorsCounter += 1
-    if(finishedActorsCounter.equals(actorsCount)) {
+    if (finishedActorsCounter.equals(actorsCount)) {
       endTime = System.currentTimeMillis()
       println(s"simulation finished in ${(endTime - startTime) / 1000.0}s")
       context.stop(self)

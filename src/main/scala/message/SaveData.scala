@@ -1,3 +1,3 @@
 package message
 
-case class SaveData(filePath :String)
+case class SaveData(filePath: String)

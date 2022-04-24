@@ -3,15 +3,14 @@ package clustered
 import akka.actor.ActorRef
 import clustered_common.ClusterSimulationHandler
 import common.ActorDescriptor
-import message.{AddNeighbourClusters, ClusterInitialized, ClusterReady, ProgressMonitorInitialize, SimulationFinish, SimulationStart}
+import message._
 
 import scala.collection.mutable
 
 case class ClusteredSimulatorActor() extends ClusterSimulationHandler {
 
+  val clusterObjects: mutable.Set[ActorDescriptor] = mutable.Set()
   var initializedClustersCounter = 0
-
-  val clusterObjects :mutable.Set[ActorDescriptor] = mutable.Set()
 
   override def receive: Receive = {
     case SimulationStart(clusters) => handleSimulationStart(clusters)
@@ -20,10 +19,10 @@ case class ClusteredSimulatorActor() extends ClusterSimulationHandler {
     case SimulationFinish() => handleSimulationFinish()
   }
 
-  def handleClusterInitialized(id: String,  senderRef: ActorRef): Unit = {
+  def handleClusterInitialized(id: String, senderRef: ActorRef): Unit = {
     clusterObjects.add(common.ActorDescriptor(id, senderRef))
     initializedClustersCounter += 1
-    if(initializedClustersCounter == clusters.size) {
+    if (initializedClustersCounter == clusters.size) {
       afterClustersInitialize()
       setNeighbours()
     }

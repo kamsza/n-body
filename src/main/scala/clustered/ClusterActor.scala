@@ -24,18 +24,18 @@ class ClusterActor(
     case ClusterDataUpdate(id, mass, position) => handleClusterDataUpdate(id, mass, position)
   }
 
-  def sendUpdate(): Unit = neighbourClusters.foreach(_.actorRef ! ClusterDataUpdate(id, mass, position))
-
   def handleClusterDataUpdate(id: String, mass: BigDecimal, position: Vec2): Unit = {
     receivedMessagesCounter += 1
     neighbourObjects += (id -> ClusterDescriptor(id, mass, position))
-    if(receivedMessagesCounter == neighbourClusters.size) {
+    if (receivedMessagesCounter == neighbourClusters.size) {
       receivedMessagesCounter = 0
       makeSimulationStep()
       doOnSimulationStepAction(stepsCounter)
       sendUpdate()
     }
   }
+
+  def sendUpdate(): Unit = neighbourClusters.foreach(_.actorRef ! ClusterDataUpdate(id, mass, position))
 
   override def neighbours: Set[Object] = neighbourObjects.values.toSet
 }
