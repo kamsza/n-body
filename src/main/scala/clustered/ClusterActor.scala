@@ -11,7 +11,7 @@ import scala.collection.mutable
 class ClusterActor(
                     id: String,
                     bodies: Set[Body],
-                    resultsFileWriter: BufferedWriter)
+                    resultsFileWriter: Option[BufferedWriter])
   extends AbstractClusterActor(id, bodies, resultsFileWriter) {
 
   val neighbourObjects: mutable.Map[String, ClusterDescriptor] = mutable.Map()

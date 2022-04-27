@@ -17,7 +17,7 @@ abstract class AbstractClusterActor(
                                      override val mass: BigDecimal,
                                      var position: Vec2,
                                      var bodies: Set[Body],
-                                     resultsFileWriter: BufferedWriter)
+                                     resultsFileWriter: Option[BufferedWriter])
   extends Object with Actor {
 
   val progressMarker: Int = Math.max(1, (SimulationConstants.simulationStepsCount / 10).floor.toInt)
@@ -27,7 +27,7 @@ abstract class AbstractClusterActor(
   var receivedMessagesCounter: Int = 0
   var progressMonitor: ActorRef = ActorRef.noSender
 
-  def this(id: String, bodies: Set[Body], resultsFileWriter: BufferedWriter) = {
+  def this(id: String, bodies: Set[Body], resultsFileWriter: Option[BufferedWriter]) = {
     this(id, PhysicsUtil.countSummaryMass(bodies), PhysicsUtil.countCenterOfMass(bodies), bodies, resultsFileWriter)
   }
 
@@ -70,7 +70,7 @@ abstract class AbstractClusterActor(
   def neighbours: Set[Object]
 
   def doOnSimulationStepAction(stepsCounter: Int): Unit = {
-    if (stepsCounter % SimulationConstants.communicationStep == 0) writeDataToFile()
+    if (resultsFileWriter.isDefined && stepsCounter % SimulationConstants.communicationStep == 0) writeDataToFile()
     if (stepsCounter % progressMarker == 0) progressMonitor ! OneTenthDone(id)
     if (stepsCounter == 0) finish()
   }
@@ -80,11 +80,11 @@ abstract class AbstractClusterActor(
       .map(body => body.toTuple)
       .map(tuple => tuple.productIterator.mkString(DELIMITER))
       .mkString("\n")
-    resultsFileWriter.write(s"\n${dataString}")
+    resultsFileWriter.get.write(s"\n${dataString}")
   }
 
   def finish(): Unit = {
-    resultsFileWriter.close()
+    if(resultsFileWriter.isDefined) resultsFileWriter.get.close()
     managingActor ! SimulationFinish()
     context.stop(self)
   }

@@ -12,11 +12,11 @@ import scala.collection.mutable
 class ClusterActor(
                     id: String,
                     _bodies: Set[Body],
-                    resultsFileWriter: BufferedWriter)
+                    resultsFileWriter: Option[BufferedWriter])
   extends AbstractClusterActor(id, _bodies, resultsFileWriter) {
 
-  val clusters: mutable.Map[String, ClusterDescriptor] = mutable.Map(id -> ClusterDescriptor(id, mass, position, timestamp))
   var timestamp: Int = 0
+  val clusters: mutable.Map[String, ClusterDescriptor] = mutable.Map(id -> ClusterDescriptor(id, mass, position, timestamp))
   var connectionManager: ActorRef = ActorRef.noSender
 
   override def receive: Receive = {
