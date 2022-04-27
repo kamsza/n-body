@@ -3,11 +3,11 @@ package math
 case class Vec2(x: BigDecimal, y: BigDecimal) {
   def /(scalar: BigDecimal): Vec2 = this * (1.0 / scalar)
 
-  def *(scalar: BigDecimal): Vec2 = copy(x * scalar, y * scalar)
-
   def distance(that: Vec2): BigDecimal = (this - that).length
 
   def -(that: Vec2): Vec2 = this + (that * -1)
+
+  def *(scalar: BigDecimal): Vec2 = copy(x * scalar, y * scalar)
 
   def +(that: Vec2): Vec2 = copy(x + that.x, y + that.y)
 

@@ -3,6 +3,7 @@ package divided
 import akka.actor.{ActorRef, Props}
 import clustered_common.ClusterSimulationHandler
 import common.ActorDescriptor
+import constant.Constants
 import math.Vec2
 import message._
 
@@ -39,11 +40,11 @@ case class DividedSimulatorActor() extends ClusterSimulationHandler {
 
   def setNeighbours(): Unit = {
     clusterObjects.foreach(cluster => {
-      //      val neighbourClusters = clusterObjects
-      //        .filterNot(c => cluster.equals(c))
-      //        .filter(c => cluster.position.distance(c.position) < Constants.neighbourDistance)
-      //        .map(c => ActorDescriptor(c.id, c.actorRef))
-      //        .toSet
+//            val neighbourClusters = clusterObjects
+//              .filterNot(c => cluster.equals(c))
+//              .filter(c => cluster.position.distance(c.position) < Constants.neighbourDistance)
+//              .map(c => ActorDescriptor(c.id, c.actorRef))
+//              .toSet
       val neighbourClusters = clusterObjects
         .filterNot(c => cluster.equals(c))
         .filter(c => isGoodId(cluster.id, c.id))

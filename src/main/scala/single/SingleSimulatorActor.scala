@@ -21,16 +21,25 @@ case class SingleSimulatorActor() extends SimulationHandler {
 
   def handleSimulationStart(bodies: Set[ActorDescriptor]): Unit = {
     this.bodies = bodies
+    initializeNeighbours()
+    initializeProgressMonitor(createAndInitProgressMonitor())
+  }
 
+  def createAndInitProgressMonitor(): ActorRef = {
     val progressMonitor = context.actorOf(Props(classOf[ProgressMonitor]), "progress_monitor")
     progressMonitor ! ProgressMonitorInitialize(bodies.map(b => b.id))
+    progressMonitor
+  }
 
+  def initializeNeighbours(): Unit = {
     bodies.foreach(body => {
       val neighbourBodies = bodies
         .filterNot(_.id == body.id)
         .map(b => b.actorRef)
       body.actorRef ! AddNeighbourBodies(neighbourBodies, context.self)
-      body.actorRef ! ActivateProgressMonitor(progressMonitor)
     })
   }
+
+  def initializeProgressMonitor(progressMonitor: ActorRef): Unit =
+    bodies.foreach(body => body.actorRef ! ActivateProgressMonitor(progressMonitor))
 }

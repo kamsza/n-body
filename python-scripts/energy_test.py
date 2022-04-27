@@ -1,7 +1,7 @@
-import sys
 import math
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
+import sys
 
 RESULTS_DIR = "../results/"
 CSV_DELIMITER = ' '
@@ -23,9 +23,9 @@ def count_KE(row):
 def count_PE(row1, rows):
     # PE = sum(PE for each pair of bodies)
     return rows.apply(
-            lambda row2: _count_PE(row1, row2),
-            axis=1
-        ).sum() / 2
+        lambda row2: _count_PE(row1, row2),
+        axis=1
+    ).sum() / 2
 
 
 def _count_PE(row1, row2):
@@ -36,7 +36,7 @@ def _count_PE(row1, row2):
 
 def count_r(x_1, y_1, x_2, y_2):
     # r = sqrt((x_1 - x_2)^2 + (y_1 - y_2)^2)
-    return math.sqrt((x_1 - x_2)**2 + (y_1 - y_2)**2)
+    return math.sqrt((x_1 - x_2) ** 2 + (y_1 - y_2) ** 2)
 
 
 energy_df = pd.DataFrame([], columns=["KE", "PE", "E"])

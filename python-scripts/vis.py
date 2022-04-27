@@ -1,24 +1,25 @@
-import sys
+import math
 import matplotlib.pyplot as plt
 import pandas as pd
-from os import listdir
-from os.path import isfile, join, abspath
-from operator import iconcat
+import sys
 from functools import reduce
 from matplotlib.animation import FuncAnimation
-import math
+from operator import iconcat
+from os import listdir
+from os.path import isfile, join, abspath
 
 RESULTS_DIR = "../results/"
 CSV_DELIMITER = ';'
 
+
 class ClusterData:
     def __init__(self, file_name):
-        self.df = pd.read_csv(file_name, sep=CSV_DELIMITER, header=0, names=['id', 'mass', 'pos_x', 'pos_y', 'v_x', 'v_y'])
+        self.df = pd.read_csv(file_name, sep=CSV_DELIMITER, header=0,
+                              names=['id', 'mass', 'pos_x', 'pos_y', 'v_x', 'v_y'])
         self.data_count = self.df['id'].nunique()
         self.x_lim = self._get_axes_limits('pos_x')
         self.y_lim = self._get_axes_limits('pos_y')
         # print(self.df)
-
 
     def _get_axes_limits(self, prop_name):
         min_val = self.df[prop_name].min()
@@ -38,18 +39,23 @@ def get_summary_axes_limits(cluster_data, prop_name):
     lim = [getattr(cluster, prop_name) for cluster in cluster_data]
     return reduce(lambda lim_1, lim_2: get_axes_limits(lim_1, lim_2), lim)
 
+
 def get_axes_limits(lim_1, lim_2):
     return min(lim_1[0], lim_2[0]), max(lim_1[1], lim_2[1])
 
+
 def get_points_count(cluster_data):
     return sum([getattr(cluster, 'data_count') for cluster in cluster_data])
+
 
 def get_steps_count(cluster_data):
     steps_count = cluster_data[0].get_steps_count()
     for cluster in cluster_data:
         if cluster.get_steps_count() != steps_count:
-            raise Exception(f"Different number of steps in clusters expected ${steps_count} got: ${cluster.get_steps_count()}")
+            raise Exception(
+                f"Different number of steps in clusters expected ${steps_count} got: ${cluster.get_steps_count()}")
     return steps_count
+
 
 def update_limit(curr_pos, ax):
     x = [pos[0] for pos in curr_pos]
@@ -57,14 +63,16 @@ def update_limit(curr_pos, ax):
     lim = max([round_up_abs(min(x)), round_up_abs(max(x)), round_up_abs(min(y)), round_up_abs(max(y))])
     old_lim = max([abs(ax.get_ylim()[0]), abs(ax.get_ylim()[1]), abs(ax.get_xlim()[0]), abs(ax.get_xlim()[0])])
     if old_lim < lim:
-        ax.set_xlim(-1*lim, lim)
-        ax.set_ylim(-1*lim, lim)
+        ax.set_xlim(-1 * lim, lim)
+        ax.set_ylim(-1 * lim, lim)
+
 
 def round_up_abs(num):
     digits = int(math.log10(abs(num)))
     first_digit = abs(int(1.2 * num / pow(10, digits)))
     first_digit += 2 if first_digit > 0 else -2
     return first_digit * pow(10, digits)
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
@@ -95,6 +103,7 @@ if __name__ == "__main__":
     steps = get_steps_count(cluster_data)
     prev_pos = []
 
+
     def update(frame):
         global prev_pos, steps, cluster_data, ax
 
@@ -107,6 +116,7 @@ if __name__ == "__main__":
         update_limit(curr_pos, ax)
 
         return scatter, scatter_path
+
 
     anim = FuncAnimation(fig, update, frames=steps, interval=interval, repeat=False)
     plt.show()

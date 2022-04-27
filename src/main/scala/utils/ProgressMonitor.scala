@@ -6,6 +6,9 @@ import message.{OneTenthDone, ProgressMonitorInitialize}
 
 import scala.collection.mutable
 
+/**
+ * Actor printing info messages to keep track of simulation progress.
+ */
 case class ProgressMonitor() extends Actor {
 
   val markersCount = 10
@@ -14,7 +17,7 @@ case class ProgressMonitor() extends Actor {
 
   var partsDone = 0
 
-  var actorIds: Set[String] = null
+  var actorIds: Set[String] = Set.empty
 
   var receivedIds: mutable.SortedSet[String] = mutable.SortedSet()
 
@@ -25,20 +28,17 @@ case class ProgressMonitor() extends Actor {
 
   def handleProgressMonitorInitialize(actorIds: Set[String]): Unit = {
     this.actorIds = actorIds
-    println(
-      s"""simulation configuration
+    printInfoMessage()
+  }
+
+  def printInfoMessage(): Unit = println(
+    s"""simulation configuration
       - steps count: ${SimulationConstants.simulationStepsCount}
       - dt: ${SimulationConstants.dt}
       - save data step: ${SimulationConstants.communicationStep}""")
-  }
 
   def handleTenthDone(id: String): Unit = {
-    if (receivedIds.contains(id)) {
-      println("----------------------- WARNING -----------------------")
-      println(s"| Actor with id ${id} is way ahead others")
-      println(s"| Received info from: ${receivedIds.mkString(", ")}")
-    }
-
+    if (receivedIds.contains(id)) printWarningMessage(id)
     receivedIds += id
     if (receivedIds.equals(actorIds)) {
       receivedIds.clear()
@@ -48,10 +48,17 @@ case class ProgressMonitor() extends Actor {
     }
   }
 
+  def printWarningMessage(id: String): Unit = println(
+    s"""----------------------- WARNING -----------------------
+       | Actor with id ${id} is way ahead others
+       | Received info from: ${receivedIds.mkString(", ")}""")
+
   def updateProgress(): Unit = {
     partsDone += 1
-    println(s"[${"X" * partsDone}${"-" * partsToDo}] ${partsDone}/${markersCount}")
+    printUpdateMessage()
   }
+
+  def printUpdateMessage(): Unit = println(s"[${"X" * partsDone}${"-" * partsToDo}] ${partsDone}/${markersCount}")
 
   def partsToDo: Int = markersCount - partsDone
 

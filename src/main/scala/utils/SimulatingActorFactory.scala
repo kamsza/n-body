@@ -11,7 +11,9 @@ import java.nio.file.{Path, Paths}
 import scala.collection.mutable
 import scala.io.Source
 
-
+/**
+ * Factory creating simulating actors.
+ */
 object SimulatingActorFactory {
   val DELIMITER = ";"
 
@@ -86,12 +88,6 @@ object SimulatingActorFactory {
     ActorDescriptor(clusterId, actor)
   }
 
-  def loadClusterBodies(resourceName: String, clusterId: String, shiftVector: Vec2): Set[Body] = {
-    val bodies = loadClusterBodies(resourceName, clusterId)
-    bodies.foreach(_.changePosition(shiftVector))
-    bodies
-  }
-
   def loadClusterBodies(resourceName: String, clusterId: String): Set[Body] = {
     var bodyIdx = 0
     val bodies = mutable.Set[Body]()
@@ -151,4 +147,10 @@ object SimulatingActorFactory {
     "\"velocity x [m/s]\"",
     "\"velocity y [m/s]\""
   ).mkString(DELIMITER)
+
+  def loadClusterBodies(resourceName: String, clusterId: String, shiftVector: Vec2): Set[Body] = {
+    val bodies = loadClusterBodies(resourceName, clusterId)
+    bodies.foreach(_.changePosition(shiftVector))
+    bodies
+  }
 }

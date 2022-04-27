@@ -15,8 +15,8 @@ class ClusterActor(
                     resultsFileWriter: Option[BufferedWriter])
   extends AbstractClusterActor(id, _bodies, resultsFileWriter) {
 
-  var timestamp: Int = 0
   val clusters: mutable.Map[String, ClusterDescriptor] = mutable.Map(id -> ClusterDescriptor(id, mass, position, timestamp))
+  var timestamp: Int = 0
   var connectionManager: ActorRef = ActorRef.noSender
 
   override def receive: Receive = {
@@ -92,9 +92,9 @@ class ClusterActor(
       })
   }
 
-  override def neighbours: Set[Object] = clusters.values.toSet
-
   def checkClusterAffiliation(): Unit = connectionManager ! ClusterNeighbourNetworkUpdate(this.id, this.position, this.neighbours.map(n => n.id))
+
+  override def neighbours: Set[Object] = clusters.values.toSet
 
   def handleUpdateNeighbourList(newNeighbours: Set[ActorDescriptor], farNeighbours: Set[ActorDescriptor]): Unit = {
     println(s"handleUpdateNeighbourList  newNeighbours: ${newNeighbours.size}  farNeighbours: ${farNeighbours.size}")

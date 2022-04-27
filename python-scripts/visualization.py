@@ -1,10 +1,9 @@
 # venv\Scripts\activate
 
 import matplotlib.pyplot as plt
-from matplotlib import animation
-from matplotlib.animation import FuncAnimation
-import sys
 import pandas as pd
+import sys
+from matplotlib.animation import FuncAnimation
 
 RESULTS_DIR = "../results/"
 PATH_LENGTH = 10

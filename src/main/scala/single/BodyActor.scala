@@ -19,7 +19,7 @@ class BodyActor(
   extends AbstractBody(id, mass, startPosition, startVelocity) with Actor {
 
   val progressMarker: Int = Math.max(1, (SimulationConstants.simulationStepsCount / 10).floor.toInt)
-  var neighbourBodies: Set[ActorRef] = null
+  var neighbourBodies: Set[ActorRef] = Set.empty
   var bodies: mutable.Set[String] = mutable.Set()
   var stepsCounter: Int = SimulationConstants.simulationStepsCount
   var managingActor: ActorRef = ActorRef.noSender
