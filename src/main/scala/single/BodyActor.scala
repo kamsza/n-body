@@ -5,7 +5,7 @@ import akka.actor.{Actor, ActorRef}
 import constant.SimulationConstants
 import math.Vec2
 import message._
-import utils.CSVUtil.DELIMITER
+import utils.SimulatingActorFactory.DELIMITER
 
 import java.io.BufferedWriter
 import scala.collection.mutable
@@ -15,7 +15,7 @@ class BodyActor(
                  mass: BigDecimal,
                  startPosition: Vec2,
                  startVelocity: Vec2,
-                 resultsFileWriter: BufferedWriter)
+                 resultsFileWriter: Option[BufferedWriter])
   extends AbstractBody(id, mass, startPosition, startVelocity) with Actor {
 
   val progressMarker: Int = Math.max(1, (SimulationConstants.simulationStepsCount / 10).floor.toInt)
@@ -68,7 +68,7 @@ class BodyActor(
   }
 
   def doOnSimulationStepAction(stepsCounter: Int): Unit = {
-    if (stepsCounter % SimulationConstants.communicationStep == 0) writeDataToFile()
+    if (resultsFileWriter.isDefined && stepsCounter % SimulationConstants.communicationStep == 0) writeDataToFile()
     if (stepsCounter % progressMarker == 0) progressMonitor ! OneTenthDone(id)
     if (stepsCounter == 0) finish()
   }
@@ -78,11 +78,11 @@ class BodyActor(
       .productIterator
       .mkString(DELIMITER)
 
-    resultsFileWriter.write(s"\n${dataString}")
+    resultsFileWriter.get.write(s"\n${dataString}")
   }
 
   def finish(): Unit = {
-    resultsFileWriter.close()
+    if(resultsFileWriter.isDefined) resultsFileWriter.get.close()
     managingActor ! SimulationFinish()
     context.stop(self)
   }

@@ -6,7 +6,7 @@ import common.ActorDescriptor
 import constant.SimulationConstants
 import math.Vec2
 import message.{ClusterInitialized, ClusterReady, OneTenthDone, SimulationFinish}
-import utils.CSVUtil.DELIMITER
+import utils.SimulatingActorFactory.DELIMITER
 import utils.PhysicsUtil
 
 import java.io.BufferedWriter
