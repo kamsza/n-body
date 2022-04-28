@@ -9,7 +9,7 @@ abstract class ClusterSimulationHandler extends SimulationHandler {
 
   var clusters: Set[ActorDescriptor] = Set()
 
-  var progressMonitor: ActorRef = ActorRef.noSender
+  var progressMonitor: ActorRef = createProgressMonitor()
 
   override def actorsCount: Int = clusters.size
 
@@ -17,16 +17,18 @@ abstract class ClusterSimulationHandler extends SimulationHandler {
 
   def handleSimulationStart(clusters: Set[ActorDescriptor]): Unit = {
     this.clusters = clusters
-    this.progressMonitor = createProgressMonitor() // TODO: move to constructor
     initializeClusters()
   }
 
   def initializeClusters(): Unit = {
-    clusters.foreach(cluster => cluster.actorRef ! Initialize(context.self, progressMonitor))
+    clusters.foreach(cluster =>
+      cluster.actorRef ! Initialize(context.self, progressMonitor)
+    )
   }
 
   def createProgressMonitor(): ActorRef = {
-    val progressMonitor = context.actorOf(Props(classOf[ProgressMonitor]), "progress_monitor")
+    val progressMonitor =
+      context.actorOf(Props(classOf[ProgressMonitor]), "progress_monitor")
     progressMonitor
   }
 }
