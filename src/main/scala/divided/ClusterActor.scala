@@ -10,13 +10,12 @@ import java.io.BufferedWriter
 import scala.collection.mutable
 
 class ClusterActor(
-                    id: String,
-                    _bodies: Set[Body],
-                    resultsFileWriter: Option[BufferedWriter])
-  extends AbstractClusterActor(id, _bodies, resultsFileWriter) {
+    id: String,
+    _bodies: Set[Body],
+    resultsFileWriter: Option[BufferedWriter]
+) extends AbstractClusterActor(id, _bodies, resultsFileWriter) {
 
   val clusters: mutable.Map[String, ClusterDescriptor] = mutable.Map(id -> ClusterDescriptor(id, mass, position, timestamp))
-  var timestamp: Int = 0
   var connectionManager: ActorRef = ActorRef.noSender
 
   override def receive: Receive = {
@@ -25,6 +24,8 @@ class ClusterActor(
     case ActivateProgressMonitor(progressMonitor) => setProgressMonitor(progressMonitor)
     case MakeSimulation() => handleMakeSimulation()
     case DividedDataUpdate(clusters) => handleClusterDataUpdate(clusters)
+    case DividedNewNeighbourDataUpdate(sender, clusters) => handleNewNeighbourClusterDataUpdate(sender, clusters)
+    case DividedFarNeighbourDataUpdate(sender, clusters) => handleFarNeighbourClusterDataUpdate(sender, clusters)
     case UpdateNeighbourList(newNeighbours, farNeighbours) => handleUpdateNeighbourList(newNeighbours, farNeighbours)
     case UpdateBodiesList(newBodies) => handleUpdateBodiesList(newBodies)
   }
@@ -44,7 +45,8 @@ class ClusterActor(
           cD.position = cluster.position
           cD.timestamp = cluster.timestamp
         case Some(_: ClusterDescriptor) => // nothing to do
-        case None => clusters += (cluster.id -> ClusterDescriptor(cluster.id, cluster.mass, cluster.position, cluster.timestamp))
+        case None =>
+          clusters += (cluster.id -> ClusterDescriptor(cluster.id, cluster.mass, cluster.position, cluster.timestamp))
       }
     })
 
@@ -57,8 +59,21 @@ class ClusterActor(
     }
   }
 
+  def handleNewNeighbourClusterDataUpdate(sender:  ActorDescriptor, clustersUpdate: Set[ClusterDescriptor]): Unit = {
+    this.neighbourClusters.add(sender)
+    handleClusterDataUpdate(clustersUpdate)
+  }
+
+  def handleFarNeighbourClusterDataUpdate(sender:  ActorDescriptor, clustersUpdate: Set[ClusterDescriptor]): Unit = {
+    this.neighbourClusters -= sender
+    handleClusterDataUpdate(clustersUpdate)
+  }
+
+
   override def sendUpdate(): Unit = {
-    neighbourClusters.foreach(_.actorRef ! DividedDataUpdate(clusters.values.toSet))
+    neighbourClusters.foreach(
+      _.actorRef ! DividedDataUpdate(clusters.values.toSet)
+    )
   }
 
   override def makeSimulationStep(): Unit = {
@@ -72,13 +87,19 @@ class ClusterActor(
 
   override def doOnSimulationStepAction(stepsCounter: Int): Unit = {
     super.doOnSimulationStepAction(stepsCounter)
-    if (stepsCounter % 10 == 0) checkBodiesAffiliation()
-    if (stepsCounter % 10 == 0) checkClusterAffiliation()
+    checkBodiesAffiliation()
+    checkClusterAffiliation()
   }
 
   def checkBodiesAffiliation(): Unit = {
-    bodies.map(body => (body, this.position.distance(body.position)))
-      .map(bodyDescriptor => (bodyDescriptor._1, bodyDescriptor._1.findNewCluster(bodyDescriptor._2, neighbours)))
+    bodies
+      .map(body => (body, this.position.distance(body.position)))
+      .map(bodyDescriptor =>
+        (
+          bodyDescriptor._1,
+          bodyDescriptor._1.findNewCluster(bodyDescriptor._2, neighbours)
+        )
+      )
       .filter(bodyDescriptor => bodyDescriptor._2.isDefined)
       .map(bodyDescriptor => (bodyDescriptor._1, bodyDescriptor._2.get))
       .groupBy(_._2)
@@ -86,24 +107,40 @@ class ClusterActor(
         neighbourClusters.find(nc => nc.id == group._1.id) match {
           case Some(actorDescriptor: ActorDescriptor) =>
             actorDescriptor.actorRef ! UpdateBodiesList(group._2.map(x => x._1))
-            this.bodies.removedAll(group._2.map(x => x._1))
+            this.bodies --= group._2.map(x => x._1)
           case None => // nothing to do?
         }
       })
   }
 
-  def checkClusterAffiliation(): Unit = connectionManager ! ClusterNeighbourNetworkUpdate(this.id, this.position, this.neighbours.map(n => n.id))
+  def checkClusterAffiliation(): Unit =
+    connectionManager ! ClusterNeighbourNetworkUpdate(
+      this.id,
+      this.position,
+      this.neighbours.map(n => n.id)
+    )
 
   override def neighbours: Set[Object] = clusters.values.toSet
 
-  def handleUpdateNeighbourList(newNeighbours: Set[ActorDescriptor], farNeighbours: Set[ActorDescriptor]): Unit = {
-    println(s"handleUpdateNeighbourList  newNeighbours: ${newNeighbours.size}  farNeighbours: ${farNeighbours.size}")
-    //??
+  def handleUpdateNeighbourList(
+      newNeighbours: Set[ActorDescriptor],
+      farNeighbours: Set[ActorDescriptor]
+  ): Unit = {
+    if(newNeighbours.nonEmpty || farNeighbours.nonEmpty) {
+      println(
+        s"handleUpdateNeighbourList  newNeighbours: ${newNeighbours.size}  farNeighbours: ${farNeighbours.size}"
+      )
+    }
+    newNeighbours.foreach(n => n.actorRef ! DividedNewNeighbourDataUpdate(ActorDescriptor(this.id, self), clusters.values.toSet))
+    farNeighbours.foreach(n => n.actorRef ! DividedFarNeighbourDataUpdate(ActorDescriptor(this.id, self), clusters.values.toSet))
+    this.neighbourClusters.addAll(newNeighbours)
+    this.neighbourClusters --= farNeighbours
   }
 
   def handleUpdateBodiesList(newBodies: Set[Body]): Unit = {
-    println(s"handleUpdateBodiesList  newBodies: ${newBodies.size}")
-    //this.bodies ++= newBodies
+    if(newBodies.nonEmpty) {
+      println(s"handleUpdateBodiesList  newBodies: ${newBodies.size}")
+    }
+    this.bodies ++= newBodies
   }
 }
-

@@ -50,18 +50,18 @@ case class DividedSimulatorActor() extends ClusterSimulationHandler {
 
   def setNeighbours(): Unit = {
     clusterObjects.foreach(cluster => {
-      val neighbourClusters = clusterObjects
-        .filterNot(c => cluster.equals(c))
-        .filter(c =>
-          cluster.position.distance(c.position) < Constants.neighbourDistance
-        )
-        .map(c => ActorDescriptor(c.id, c.actorRef))
-        .toSet
 //      val neighbourClusters = clusterObjects
 //        .filterNot(c => cluster.equals(c))
-//        .filter(c => isGoodId(cluster.id, c.id))
+//        .filter(c =>
+//          cluster.position.distance(c.position) < Constants.neighbourDistance
+//        )
 //        .map(c => ActorDescriptor(c.id, c.actorRef))
 //        .toSet
+      val neighbourClusters = clusterObjects
+        .filterNot(c => cluster.equals(c))
+        .filter(c => isGoodId(cluster.id, c.id))
+        .map(c => ActorDescriptor(c.id, c.actorRef))
+        .toSet
       cluster.actorRef ! AddNeighbourClusters(neighbourClusters)
     })
   }

@@ -16,7 +16,9 @@ class ClusterData:
     def __init__(self, file_name):
         self.df = pd.read_csv(file_name, sep=CSV_DELIMITER, header=0,
                               names=['id', 'mass', 'pos_x', 'pos_y', 'v_x', 'v_y', 'timestamp'])
-        self.data_count = self.df['id'].nunique()
+        self.steps_count = self.df['timestamp'].nunique()
+        self.data_count = self.df.loc[self.df['timestamp'] == 0]['id'].nunique()
+        self.timestamp = self.df['timestamp'][0]
         self.x_lim = self._get_axes_limits('pos_x')
         self.y_lim = self._get_axes_limits('pos_y')
         # print(self.df)
@@ -27,12 +29,16 @@ class ClusterData:
         margin = (max_val - min_val) * 0.1
         return min_val - margin, max_val + margin
 
-    def get_positions(self, step_id: int) -> list:
-        return list(self.df.iloc[step_id * self.data_count: (step_id + 1) * self.data_count] \
+    def get_positions(self, timestamp: int) -> list:
+        return list(self.df.loc[self.df['timestamp'] == timestamp]
                     .apply(lambda row: [row['pos_x'], row['pos_y']], axis=1))
+        #
+        #
+        # return list(self.df.iloc[step_id * self.data_count: (step_id + 1) * self.data_count] \
+        #             .apply(lambda row: [row['pos_x'], row['pos_y']], axis=1))
 
     def get_steps_count(self):
-        return len(self.df) // self.data_count
+        return self.steps_count
 
 
 def get_summary_axes_limits(cluster_data, prop_name):
@@ -109,13 +115,13 @@ if __name__ == "__main__":
     def update(frame):
         global prev_pos, steps, cluster_data, ax
 
-        curr_pos = reduce(iconcat, [cluster.get_positions(frame) for cluster in cluster_data], [])
+        curr_pos = reduce(iconcat, [cluster.get_positions(cluster.timestamp * (frame + 1)) for cluster in cluster_data], [])
         scatter.set_offsets(curr_pos)
 
         prev_pos += curr_pos
         scatter_path.set_offsets(prev_pos)
 
-        # update_limit(curr_pos, ax)
+        #update_limit(curr_pos, ax)
 
         return scatter, scatter_path
 

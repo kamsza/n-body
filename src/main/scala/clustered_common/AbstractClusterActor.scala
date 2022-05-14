@@ -20,12 +20,16 @@ abstract class AbstractClusterActor(
                                      resultsFileWriter: Option[BufferedWriter])
   extends Object with Actor {
 
-  val progressMarker: Int = Math.max(1, (SimulationConstants.simulationStepsCount / 10).floor.toInt)
-  protected val neighbourClusters: mutable.Set[ActorDescriptor] = mutable.Set[ActorDescriptor]()
+  val neighbourClusters: mutable.Set[ActorDescriptor] = mutable.Set[ActorDescriptor]()
+
   var stepsCounter: Int = SimulationConstants.simulationStepsCount
-  var managingActor: ActorRef = ActorRef.noSender
+  val progressMarker: Int = Math.max(1, (SimulationConstants.simulationStepsCount / 10).floor.toInt)
   var receivedMessagesCounter: Int = 0
+
+  var managingActor: ActorRef = ActorRef.noSender
   var progressMonitor: ActorRef = ActorRef.noSender
+
+  var timestamp: Int = 0
 
   def this(id: String, bodies: Set[Body], resultsFileWriter: Option[BufferedWriter]) = {
     this(id, PhysicsUtil.countSummaryMass(bodies), PhysicsUtil.countCenterOfMass(bodies), bodies, resultsFileWriter)
@@ -35,8 +39,8 @@ abstract class AbstractClusterActor(
     this.progressMonitor = progressMonitor
   }
 
-  def handleInitialize(simulationController: ActorRef, progressMonitor: ActorRef): Unit = {
-    managingActor = simulationController
+  def handleInitialize(managingActor: ActorRef, progressMonitor: ActorRef): Unit = {
+    this.managingActor = managingActor
     this.progressMonitor = progressMonitor
     managingActor ! ClusterInitialized(id, position)
   }
@@ -79,6 +83,7 @@ abstract class AbstractClusterActor(
     val dataString = bodies
       .map(body => body.toTuple)
       .map(tuple => tuple.productIterator.mkString(DELIMITER))
+      .map(str => str + DELIMITER + timestamp)
       .mkString("\n")
     resultsFileWriter.get.write(s"\n${dataString}")
   }

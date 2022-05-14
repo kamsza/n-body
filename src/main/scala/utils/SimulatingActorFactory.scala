@@ -180,7 +180,8 @@ object SimulatingActorFactory {
     "\"position x [m]\"",
     "\"position y [m]\"",
     "\"velocity x [m/s]\"",
-    "\"velocity y [m/s]\""
+    "\"velocity y [m/s]\"",
+    "timestamp"
   ).mkString(DELIMITER)
 
   def loadClusterBodies(
