@@ -17,22 +17,15 @@ abstract class SimulationHandler extends Actor {
 
   def actors: Iterable[ActorRef]
 
-  def handleActorReady(): Unit = {
-    readyActorsCounter += 1
-    if (readyActorsCounter.equals(actorsCount)) {
-      actors.foreach(body => body ! MakeSimulation())
-      println("simulation started")
-      startTime = System.currentTimeMillis()
-    }
+  def startSimulation(): Unit = {
+    actors.foreach(actor => actor ! MakeSimulation())
+    startTime = System.currentTimeMillis()
   }
 
-  def handleSimulationFinish(): Unit = {
-    finishedActorsCounter += 1
-    if (finishedActorsCounter.equals(actorsCount)) {
-      endTime = System.currentTimeMillis()
-      println(s"simulation finished in ${(endTime - startTime) / 1000.0}s")
-      context.stop(self)
-      context.system.terminate()
-    }
+  def endSimulation(): Unit = {
+    endTime = System.currentTimeMillis()
+    println(s"simulation finished in ${(endTime - startTime) / 1000.0}s")
+    context.stop(self)
+    context.system.terminate()
   }
 }

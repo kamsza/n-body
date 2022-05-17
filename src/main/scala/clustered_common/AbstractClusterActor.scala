@@ -51,8 +51,14 @@ abstract class AbstractClusterActor(
   }
 
   def handleMakeSimulation(): Unit = {
-    makeSimulationStep()
+    applyForce()
+    bodies.foreach(_.initMove())
     sendUpdate()
+  }
+
+  def applyForce(): Unit = {
+    bodies.foreach(body => bodies.filter(b => b.id != body.id).foreach(body.applyForce))
+    bodies.foreach(body => neighbours.filter(n => n.id != this.id).foreach(body.applyForce))
   }
 
   def makeSimulationStep(): Unit = {
@@ -62,8 +68,7 @@ abstract class AbstractClusterActor(
   }
 
   def updateBodiesPosition(): Unit = {
-    bodies.foreach(body => bodies.filter(b => b.id != body.id).foreach(body.applyForce))
-    bodies.foreach(body => neighbours.filter(n => n.id != this.id).foreach(body.applyForce))
+    applyForce()
     bodies.foreach(_.move())
   }
 

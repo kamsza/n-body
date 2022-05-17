@@ -4,6 +4,7 @@ import `object`.Object
 import akka.actor.ActorRef
 import clustered_common.{AbstractClusterActor, Body}
 import common.ActorDescriptor
+import constant.SimulationConstants
 import message._
 
 import java.io.BufferedWriter
@@ -22,12 +23,31 @@ class ClusterActor(
     case DividedInitialize(simulationController, progressMonitor, connectionManager) => handleInitialize(simulationController, progressMonitor, connectionManager)
     case AddNeighbourClusters(clusters) => handleAddNeighbourClusters(clusters)
     case ActivateProgressMonitor(progressMonitor) => setProgressMonitor(progressMonitor)
+    case SendDataInit() => handleSendDataInit()
+    case DividedDataInit(clusters, id) => handleDataInit(clusters, id)
     case MakeSimulation() => handleMakeSimulation()
     case DividedDataUpdate(clusters) => handleClusterDataUpdate(clusters)
     case DividedNewNeighbourDataUpdate(sender, clusters) => handleNewNeighbourClusterDataUpdate(sender, clusters)
     case DividedFarNeighbourDataUpdate(sender, clusters) => handleFarNeighbourClusterDataUpdate(sender, clusters)
     case UpdateNeighbourList(newNeighbours, farNeighbours) => handleUpdateNeighbourList(newNeighbours, farNeighbours)
     case UpdateBodiesList(newBodies) => handleUpdateBodiesList(newBodies)
+  }
+
+  def handleSendDataInit(): Unit = {
+    neighbourClusters.foreach(
+      _.actorRef ! DividedDataInit(clusters.values.toSet, java.util.UUID.randomUUID.toString)
+    )
+  }
+
+  def handleDataInit(clusters: Set[ClusterDescriptor], messageId: String): Unit = {
+    val diff =  clusters.diff(this.clusters.values.toSet)
+    if(diff.nonEmpty) {
+      clusters.foreach(c => this.clusters += (c.id -> c))
+      neighbourClusters.foreach(_.actorRef ! DividedDataInit(this.clusters.values.toSet, messageId))
+      managingActor ! ActorInitActive(this.id, neighbourClusters.size, neighbourClusters.map(x => x.id).toSet, messageId)
+    } else {
+      managingActor ! ActorInitInactive(this.id, messageId)
+    }
   }
 
   def handleInitialize(simulationController: ActorRef, progressMonitor: ActorRef, connectionManager: ActorRef): Unit = {
@@ -87,8 +107,8 @@ class ClusterActor(
 
   override def doOnSimulationStepAction(stepsCounter: Int): Unit = {
     super.doOnSimulationStepAction(stepsCounter)
-    checkBodiesAffiliation()
-    checkClusterAffiliation()
+    if (stepsCounter % SimulationConstants.bodiesAffiliationCheck == 0) checkBodiesAffiliation()
+    if (stepsCounter % SimulationConstants.clusterNeighboursCheck == 0) checkClusterAffiliation()
   }
 
   def checkBodiesAffiliation(): Unit = {

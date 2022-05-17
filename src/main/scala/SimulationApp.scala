@@ -15,31 +15,19 @@ import utils.SimulatingActorFactory
   *      sbt "run c src/main/resources/test results/test"
   */
 object SimulationApp extends App {
-  val simulationType = "s"
 
-  val inputPath = "src/main/resources/solar_systems.txt"
+  val simulationType = args(0)
 
-  val outputPath = Some("results/single_ss")
+  val inputPath = args(1)
+
+  val outputPath = if (args.length > 2) Some(args(2)) else None
 
   val system = ActorSystem("N-BodySystem")
 
   val simulatingActors = simulationType match {
-    case "s" =>
-      SimulatingActorFactory.loadBodiesActors(inputPath, outputPath, system)
-    case "c" =>
-      SimulatingActorFactory.loadClusters(
-        inputPath,
-        outputPath,
-        system,
-        classOf[clustered.ClusterActor]
-      )
-    case "d" =>
-      SimulatingActorFactory.loadClusters(
-        inputPath,
-        outputPath,
-        system,
-        classOf[divided.ClusterActor]
-      )
+    case "s" => SimulatingActorFactory.loadBodiesActors(inputPath, outputPath, system)
+    case "c" => SimulatingActorFactory.loadClusters(inputPath, outputPath, system, classOf[clustered.ClusterActor])
+    case "d" => SimulatingActorFactory.loadClusters(inputPath, outputPath, system, classOf[divided.ClusterActor])
   }
 
   val simulationManagingActor = simulationType match {
@@ -49,26 +37,4 @@ object SimulationApp extends App {
   }
 
   simulationManagingActor ! SimulationStart(simulatingActors)
-
-//  val simulationType = args(0)
-//
-//  val inputPath = args(1)
-//
-//  val outputPath = if (args.length > 2) Some(args(2)) else None
-//
-//  val system = ActorSystem("N-BodySystem")
-//
-//  val simulatingActors = simulationType match {
-//    case "s" => SimulatingActorFactory.loadBodiesActors(inputPath, outputPath, system)
-//    case "c" => SimulatingActorFactory.loadClusters(inputPath, outputPath, system, classOf[clustered.ClusterActor])
-//    case "d" => SimulatingActorFactory.loadClusters(inputPath, outputPath, system, classOf[divided.ClusterActor])
-//  }
-//
-//  val simulationManagingActor = simulationType match {
-//    case "s" => system.actorOf(Props(classOf[SingleSimulatorActor]))
-//    case "c" => system.actorOf(Props(classOf[ClusteredSimulatorActor]))
-//    case "d" => system.actorOf(Props(classOf[DividedSimulatorActor]))
-//  }
-//
-//  simulationManagingActor ! SimulationStart(simulatingActors)
 }

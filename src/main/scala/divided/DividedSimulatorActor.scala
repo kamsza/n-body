@@ -3,7 +3,6 @@ package divided
 import akka.actor.{ActorRef, Props}
 import clustered_common.ClusterSimulationHandler
 import common.ActorDescriptor
-import constant.Constants
 import math.Vec2
 import message._
 
@@ -18,14 +17,39 @@ case class DividedSimulatorActor() extends ClusterSimulationHandler {
 
   val clusterObjects: mutable.Set[ClusterActorDescriptor] = mutable.Set()
 
+  val activeInitCluster: mutable.Set[(String, String)] = mutable.Set()
+
   var initializedClustersCounter = 0
 
   override def receive: Receive = {
     case SimulationStart(clusters) => handleSimulationStart(clusters)
     case ClusterInitialized(id, position) =>
       handleClusterInitialized(id, position, sender())
-    case ClusterReady()     => handleActorReady()
+    case ClusterReady()     => handleClusterReady()
+    case ActorInitActive(id, nightCount, ids, messageId) => handleActive(id, nightCount, ids, messageId)
+    case ActorInitInactive(id, messageId) =>         handleInactive(id, messageId)
     case SimulationFinish() => handleSimulationFinish()
+  }
+
+  def handleClusterReady(): Unit = {
+    readyActorsCounter += 1
+    if (readyActorsCounter.equals(actorsCount)) {
+      actors.foreach(body => body ! SendDataInit())
+    }
+  }
+
+  def handleActive(id: String, nightCount: Int, ids: Set[String], messageId: String): Unit = {
+    val x = (id, messageId)
+    activeInitCluster -= x
+    activeInitCluster.addAll(ids.map(id => (id, messageId)))
+  }
+
+  def handleInactive(id: String, messageId: String): Unit = {
+    val x = (id, messageId)
+    activeInitCluster -= x
+    if(activeInitCluster.isEmpty) {
+      startSimulation()
+    }
   }
 
   def handleClusterInitialized(
@@ -83,7 +107,7 @@ case class DividedSimulatorActor() extends ClusterSimulationHandler {
 
   override def handleSimulationFinish(): Unit = {
     connectionManager ! SimulationFinish()
-    super.handleSimulationFinish()
+    super.endSimulation()
   }
 
   override def initializeClusters(): Unit = {

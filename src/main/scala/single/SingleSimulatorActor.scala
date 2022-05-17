@@ -25,6 +25,20 @@ case class SingleSimulatorActor() extends SimulationHandler {
     initializeProgressMonitor(createAndInitProgressMonitor())
   }
 
+  def handleActorReady(): Unit = {
+    readyActorsCounter += 1
+    if (readyActorsCounter.equals(actorsCount)) {
+      startSimulation()
+    }
+  }
+
+  def handleSimulationFinish(): Unit = {
+    finishedActorsCounter += 1
+    if (finishedActorsCounter.equals(actorsCount)) {
+      endSimulation()
+    }
+  }
+
   def createAndInitProgressMonitor(): ActorRef = {
     val progressMonitor = context.actorOf(Props(classOf[ProgressMonitor]), "progress_monitor")
     progressMonitor ! ProgressMonitorInitialize(bodies.map(b => b.id))

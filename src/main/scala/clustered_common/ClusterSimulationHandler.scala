@@ -31,4 +31,11 @@ abstract class ClusterSimulationHandler extends SimulationHandler {
       context.actorOf(Props(classOf[ProgressMonitor]), "progress_monitor")
     progressMonitor
   }
+
+  def handleSimulationFinish(): Unit = {
+    finishedActorsCounter += 1
+    if (finishedActorsCounter.equals(actorsCount)) {
+      endSimulation()
+    }
+  }
 }

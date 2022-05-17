@@ -15,8 +15,17 @@ case class ClusteredSimulatorActor() extends ClusterSimulationHandler {
   override def receive: Receive = {
     case SimulationStart(clusters) => handleSimulationStart(clusters)
     case ClusterInitialized(id, _) => handleClusterInitialized(id, sender())
-    case ClusterReady() => handleActorReady()
+    case ClusterReady() => handleClusterReady()
+    case ClusterDataInitialized() => handleClusterDataInitialized()
     case SimulationFinish() => handleSimulationFinish()
+  }
+
+  def handleClusterReady(): Unit = {
+    readyActorsCounter += 1
+    if (readyActorsCounter.equals(actorsCount)) {
+      readyActorsCounter = 0
+      actors.foreach(body => body ! SendDataInit())
+    }
   }
 
   def handleClusterInitialized(id: String, senderRef: ActorRef): Unit = {
@@ -25,6 +34,14 @@ case class ClusteredSimulatorActor() extends ClusterSimulationHandler {
     if (initializedClustersCounter == clusters.size) {
       afterClustersInitialize()
       setNeighbours()
+    }
+  }
+
+  def handleClusterDataInitialized(): Unit = {
+    readyActorsCounter += 1
+    if (readyActorsCounter.equals(actorsCount)) {
+      readyActorsCounter = 0
+      startSimulation()
     }
   }
 
