@@ -27,7 +27,7 @@ object ClusterFactory {
     val clusters = mutable.Set[ActorDescriptor]()
     val clustersInRow = sqrt(clustersCount).toInt
 
-    println(s"clustersInRow: ${clustersInRow}")
+    println("creating cluster actors")
 
     for (y <- 0 to clustersInRow) {
       for(x <- 0 until clustersInRow if y * clustersInRow + x < clustersCount) {
@@ -46,6 +46,9 @@ object ClusterFactory {
         clusters += cluster
       }
     }
+
+    println("creating cluster actors done")
+
     clusters.toSet
   }
 

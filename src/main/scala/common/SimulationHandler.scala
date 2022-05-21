@@ -19,6 +19,7 @@ abstract class SimulationHandler extends Actor {
 
   def startSimulation(): Unit = {
     actors.foreach(actor => actor ! MakeSimulation())
+    println("simulation started")
     startTime = System.currentTimeMillis()
   }
 

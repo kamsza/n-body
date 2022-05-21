@@ -37,6 +37,7 @@ case class DividedSimulatorActor() extends ClusterSimulationHandler {
     readyActorsCounter += 1
     if (readyActorsCounter.equals(actorsCount)) {
       actors.foreach(body => body ! SendDataInit())
+      println("data initialization")
     }
   }
 
@@ -75,6 +76,7 @@ case class DividedSimulatorActor() extends ClusterSimulationHandler {
   }
 
   def setNeighbours(): Unit = {
+    println("setting neighbours")
     val neighboursCount = new ListBuffer[Int]()
     clusterObjects.foreach(cluster => {
       var neighbourClusters = getNeighboursInRange(cluster)
@@ -91,6 +93,7 @@ case class DividedSimulatorActor() extends ClusterSimulationHandler {
       cluster.actorRef ! AddNeighbourClusters(neighbourClusters)
     })
     printNeighboursCountInfo(neighboursCount.toList)
+    println("setting neighbours done")
   }
 
   def getNeighboursInRange(cluster: ClusterActorDescriptor): Set[ActorDescriptor] =

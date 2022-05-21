@@ -21,6 +21,8 @@ object BodyFactory {
     val positionYDistribution = new NormalDistribution(0.0, bodiesRadius / 4)
     val massDistribution = new UniformRealDistribution(massMinV, massMaxV)
 
+    println("creating body actors")
+
     val bodies = mutable.Set[ActorDescriptor]()
     for (bodyIdx <- 0 until bodiesCount) {
       bodies += createBodyActor(
@@ -32,6 +34,9 @@ object BodyFactory {
         positionYDistribution.sample()
       )
     }
+
+    println("creating body actors done")
+
     bodies.toSet
   }
 
