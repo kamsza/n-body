@@ -6,8 +6,7 @@ import common.ActorDescriptor
 import constant.SimulationConstants
 import math.Vec2
 import message.{ClusterInitialized, ClusterReady, OneTenthDone, SimulationFinish}
-import utils.PhysicsUtil
-import utils.SimulatingActorFactory.DELIMITER
+import utils.{CsvUtil, PhysicsUtil}
 
 import java.io.BufferedWriter
 import scala.collection.mutable
@@ -87,8 +86,8 @@ abstract class AbstractClusterActor(
   def writeDataToFile(): Unit = {
     val dataString = bodies
       .map(body => body.toTuple)
-      .map(tuple => tuple.productIterator.mkString(DELIMITER))
-      .map(str => str + DELIMITER + timestamp)
+      .map(tuple => tuple.productIterator.mkString(CsvUtil.DELIMITER))
+      .map(str => str + CsvUtil.DELIMITER + timestamp)
       .mkString("\n")
     resultsFileWriter.get.write(s"\n${dataString}")
   }

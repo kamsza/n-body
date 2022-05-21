@@ -1,0 +1,6 @@
+{
+  "clusters_count": 10,
+  "clusters_spacing": 1e20,
+  "bodies_per_cluster": 10,
+  "clusters_radius": 2e18
+}

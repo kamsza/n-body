@@ -1,10 +1,13 @@
 package constant
 
 object SimulationConstants {
-  val dt = 1000
+  val dt = 300
   val communicationStep = 1000
-  val simulationStepsCount = 100000
-  val softeningParameter = 100000
-  val bodiesAffiliationCheck = 10000
-  val clusterNeighboursCheck = 5000
+  val simulationStepsCount = 110000
+  val softeningParameter = 10000000
+  val bodiesAffiliationCheck = 1000
+  val clusterNeighboursCheck = 500
+  val minNeighboursCount = 1
+
+  var simulatingActorsCount = 0
 }

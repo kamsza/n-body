@@ -1,9 +1,12 @@
-import akka.actor.{ActorSystem, Props}
+import SimulationApp.inputPath
+import akka.actor.{ActorRef, ActorSystem, Props}
 import clustered.ClusteredSimulatorActor
+import common.ActorDescriptor
+import constant.SimulationConstants
 import divided.DividedSimulatorActor
 import message.SimulationStart
 import single.SingleSimulatorActor
-import utils.SimulatingActorFactory
+import utils.{ClusterFactory, CsvObjectFactory, JsonObjectFactory}
 
 /** SBT application expecting 2 or 3 arguments: <simulation_type> <input_path> <output_path (optional)>
   * simulation_type  one of three options: s - single, c - clustered, d - divided
@@ -16,25 +19,44 @@ import utils.SimulatingActorFactory
   */
 object SimulationApp extends App {
 
-  val simulationType = args(0)
-
-  val inputPath = args(1)
-
-  val outputPath = if (args.length > 2) Some(args(2)) else None
-
-  val system = ActorSystem("N-BodySystem")
-
-  val simulatingActors = simulationType match {
-    case "s" => SimulatingActorFactory.loadBodiesActors(inputPath, outputPath, system)
-    case "c" => SimulatingActorFactory.loadClusters(inputPath, outputPath, system, classOf[clustered.ClusterActor])
-    case "d" => SimulatingActorFactory.loadClusters(inputPath, outputPath, system, classOf[divided.ClusterActor])
+  def loadObjects(simulationType: String, inputPath: String, outputPath: Option[String]): Set[ActorDescriptor] = {
+    if(inputPath.endsWith(".json"))
+      loadObjectsFormJson(simulationType, inputPath, outputPath)
+    else
+      loadObjectsFormCsv(simulationType, inputPath, outputPath)
   }
 
-  val simulationManagingActor = simulationType match {
+  def loadObjectsFormCsv(simulationType: String, inputPath: String, outputPath: Option[String]): Set[ActorDescriptor] = simulationType match {
+    case "s" => CsvObjectFactory.loadBodiesActors(inputPath, outputPath, system)
+    case "c" => CsvObjectFactory.loadClusters(inputPath, outputPath, system, classOf[clustered.ClusterActor])
+    case "d" => CsvObjectFactory.loadClusters(inputPath, outputPath, system, classOf[divided.ClusterActor])
+  }
+
+  def loadObjectsFormJson(simulationType: String, inputPath: String, outputPath: Option[String]): Set[ActorDescriptor] = simulationType match {
+    case "s" => JsonObjectFactory.generateBodies(inputPath, outputPath, system)
+    case "c" => JsonObjectFactory.generateClusters(inputPath, outputPath, system, classOf[clustered.ClusterActor])
+    case "d" => JsonObjectFactory.generateClusters(inputPath, outputPath, system, classOf[divided.ClusterActor])
+  }
+
+  def getSimulationManagingActor(simulationType: String): ActorRef = simulationType match {
     case "s" => system.actorOf(Props(classOf[SingleSimulatorActor]))
     case "c" => system.actorOf(Props(classOf[ClusteredSimulatorActor]))
     case "d" => system.actorOf(Props(classOf[DividedSimulatorActor]))
   }
+
+  val simulationType = args(0) // "d"
+
+  val inputPath = args(1) // "F:\\magisterka\\n-body\\src\\main\\resources\\solar_systems"
+
+  val outputPath = if (args.length > 2) Some(args(2)) else None  // Some("F:\\magisterka\\n-body\\results\\divided_s")  
+
+  val system = ActorSystem("N-BodySystem")
+
+  val simulatingActors = loadObjects(simulationType, inputPath, outputPath)
+
+  SimulationConstants.simulatingActorsCount = simulatingActors.size
+
+  val simulationManagingActor = getSimulationManagingActor(simulationType)
 
   simulationManagingActor ! SimulationStart(simulatingActors)
 }

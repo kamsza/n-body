@@ -5,7 +5,7 @@ import akka.actor.{Actor, ActorRef}
 import constant.SimulationConstants
 import math.Vec2
 import message._
-import utils.SimulatingActorFactory.DELIMITER
+import utils.CsvUtil
 
 import java.io.BufferedWriter
 import scala.collection.mutable
@@ -76,7 +76,7 @@ class BodyActor(
   def writeDataToFile(): Unit = {
     val dataString = this.toTuple
       .productIterator
-      .mkString(DELIMITER)
+      .mkString(CsvUtil.DELIMITER)
 
     resultsFileWriter.get.write(s"\n${dataString}")
   }

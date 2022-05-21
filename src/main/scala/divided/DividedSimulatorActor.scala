@@ -3,10 +3,12 @@ package divided
 import akka.actor.{ActorRef, Props}
 import clustered_common.ClusterSimulationHandler
 import common.ActorDescriptor
+import constant.{Constants, SimulationConstants}
 import math.Vec2
 import message._
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 case class DividedSimulatorActor() extends ClusterSimulationHandler {
 
@@ -26,7 +28,7 @@ case class DividedSimulatorActor() extends ClusterSimulationHandler {
     case ClusterInitialized(id, position) =>
       handleClusterInitialized(id, position, sender())
     case ClusterReady()     => handleClusterReady()
-    case ActorInitActive(id, nightCount, ids, messageId) => handleActive(id, nightCount, ids, messageId)
+    case ActorInitActive(id,  ids, oldMessageId, newMessageId) => handleActive(id, ids, oldMessageId, newMessageId)
     case ActorInitInactive(id, messageId) =>         handleInactive(id, messageId)
     case SimulationFinish() => handleSimulationFinish()
   }
@@ -38,15 +40,15 @@ case class DividedSimulatorActor() extends ClusterSimulationHandler {
     }
   }
 
-  def handleActive(id: String, nightCount: Int, ids: Set[String], messageId: String): Unit = {
-    val x = (id, messageId)
-    activeInitCluster -= x
-    activeInitCluster.addAll(ids.map(id => (id, messageId)))
+  def handleActive(id: String, ids: Set[String], oldMessageId: String, newMessageId: String): Unit = {
+    val activeClusterId = (id, oldMessageId)
+    activeInitCluster -= activeClusterId
+    activeInitCluster.addAll(ids.map(id => (id, newMessageId)))
   }
 
   def handleInactive(id: String, messageId: String): Unit = {
-    val x = (id, messageId)
-    activeInitCluster -= x
+    val activeClusterId = (id, messageId)
+      activeInitCluster -= activeClusterId
     if(activeInitCluster.isEmpty) {
       startSimulation()
     }
@@ -73,41 +75,57 @@ case class DividedSimulatorActor() extends ClusterSimulationHandler {
   }
 
   def setNeighbours(): Unit = {
+    val neighboursCount = new ListBuffer[Int]()
     clusterObjects.foreach(cluster => {
-//      val neighbourClusters = clusterObjects
-//        .filterNot(c => cluster.equals(c))
-//        .filter(c =>
-//          cluster.position.distance(c.position) < Constants.neighbourDistance
-//        )
-//        .map(c => ActorDescriptor(c.id, c.actorRef))
-//        .toSet
-      val neighbourClusters = clusterObjects
-        .filterNot(c => cluster.equals(c))
-        .filter(c => isGoodId(cluster.id, c.id))
-        .map(c => ActorDescriptor(c.id, c.actorRef))
-        .toSet
+      var neighbourClusters = getNeighboursInRange(cluster)
+
+      if(neighbourClusters.size < SimulationConstants.minNeighboursCount) {
+        val closestMissingNeighbours = getNClosestNonNeighbours(cluster, neighbourClusters)
+        closestMissingNeighbours.foreach(neighbourActor =>
+          neighbourActor.actorRef ! AddNeighbourCluster(ActorDescriptor(cluster.id, cluster.actorRef)))
+        neighbourClusters ++= closestMissingNeighbours
+      }
+
+      neighboursCount += neighbourClusters.size
+
       cluster.actorRef ! AddNeighbourClusters(neighbourClusters)
     })
+    printNeighboursCountInfo(neighboursCount.toList)
   }
 
-  def isGoodId(clusterId: String, neighbourId: String): Boolean = {
-    clusterId match {
-      case "solar_system_1" =>
-        neighbourId == "solar_system_2" || neighbourId == "solar_system_5"
-      case "solar_system_2" =>
-        neighbourId == "solar_system_1" || neighbourId == "solar_system_3"
-      case "solar_system_3" =>
-        neighbourId == "solar_system_2" || neighbourId == "solar_system_4"
-      case "solar_system_4" =>
-        neighbourId == "solar_system_3" || neighbourId == "solar_system_5"
-      case "solar_system_5" =>
-        neighbourId == "solar_system_4" || neighbourId == "solar_system_1"
-    }
+  def getNeighboursInRange(cluster: ClusterActorDescriptor): Set[ActorDescriptor] =
+    clusterObjects
+      .filterNot(c => cluster.equals(c))
+      .filter(c => cluster.position.distance(c.position) < Constants.neighbourDistance)
+      .map(c => ActorDescriptor(c.id, c.actorRef))
+      .toSet
+
+  def getNClosestNonNeighbours(cluster: ClusterActorDescriptor, neighbours: Set[ActorDescriptor]): Set[ActorDescriptor] =
+    clusterObjects
+      .filterNot(c => cluster.equals(c))
+      .filter(c => !neighbours.exists(x => x.id == c.id))
+      .toList
+      .sortWith(_.position.distance(cluster.position) < _.position.distance(cluster.position))
+      .take(SimulationConstants.minNeighboursCount - neighbours.size)
+      .map(c => ActorDescriptor(c.id, c.actorRef))
+      .toSet
+
+  def printNeighboursCountInfo(neighboursCount: List[Int]): Unit = {
+    println("------------- NEIGH COUNT -------------")
+    neighboursCount
+      .groupBy(_.toString)
+      .map(t => (t._1, t._2.length))
+      .toSeq
+      .sortBy(_._1)
+      .foreach(x => println(s"> ${x._1} - ${x._2}"))
   }
 
   override def handleSimulationFinish(): Unit = {
-    connectionManager ! SimulationFinish()
-    super.endSimulation()
+    finishedActorsCounter += 1
+    if (finishedActorsCounter.equals(actorsCount)) {
+      connectionManager ! SimulationFinish()
+      super.endSimulation()
+    }
   }
 
   override def initializeClusters(): Unit = {

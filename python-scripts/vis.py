@@ -2,6 +2,7 @@ import math
 import matplotlib.pyplot as plt
 import pandas as pd
 import sys
+import numpy as np
 from functools import reduce
 from matplotlib.animation import FuncAnimation
 from operator import iconcat
@@ -15,7 +16,8 @@ CSV_DELIMITER = ';'
 class ClusterData:
     def __init__(self, file_name):
         self.df = pd.read_csv(file_name, sep=CSV_DELIMITER, header=0,
-                              names=['id', 'mass', 'pos_x', 'pos_y', 'v_x', 'v_y', 'timestamp'])
+                              names=['id', 'mass', 'pos_x', 'pos_y', 'v_x', 'v_y', 'timestamp'],
+                              dtype={'pos_x': np.float64, 'pos_y': np.float64})
         self.data_count = self.df['id'].nunique()
         self.x_lim = self._get_axes_limits('pos_x')
         self.y_lim = self._get_axes_limits('pos_y')
@@ -57,14 +59,14 @@ def get_steps_count(cluster_data):
     return steps_count
 
 
-# def update_limit(curr_pos, ax):
-#     x = [pos[0] for pos in curr_pos]
-#     y = [pos[1] for pos in curr_pos]
-#     lim = max([round_up_abs(min(x)), round_up_abs(max(x)), round_up_abs(min(y)), round_up_abs(max(y))])
-#     old_lim = max([abs(ax.get_ylim()[0]), abs(ax.get_ylim()[1]), abs(ax.get_xlim()[0]), abs(ax.get_xlim()[0])])
-#     if old_lim < lim:
-#         ax.set_xlim(-1 * lim, lim)
-#         ax.set_ylim(-1 * lim, lim)
+def update_limit(curr_pos, ax):
+    x = [pos[0] for pos in curr_pos]
+    y = [pos[1] for pos in curr_pos]
+    lim = max([round_up_abs(min(x)), round_up_abs(max(x)), round_up_abs(min(y)), round_up_abs(max(y))])
+    old_lim = max([abs(ax.get_ylim()[0]), abs(ax.get_ylim()[1]), abs(ax.get_xlim()[0]), abs(ax.get_xlim()[0])])
+    if old_lim < lim:
+        ax.set_xlim(-1 * lim, lim)
+        ax.set_ylim(-1 * lim, lim)
 
 
 def round_up_abs(num):
@@ -98,8 +100,8 @@ if __name__ == "__main__":
     ax = plt.axes()
     scatter_path = ax.scatter([0] * points_count, [0] * points_count, s=2, color=[.7, .7, 1])
     scatter = ax.scatter([0] * points_count, [0] * points_count, s=10, color='blue')
-    ax.set_xlim(-1e12, 1e12)
-    ax.set_ylim(-1e12, 1e12)
+    # ax.set_xlim(-1e12, 1e12)
+    # ax.set_ylim(-1e12, 1e12)
 
     # make visualization
     steps = get_steps_count(cluster_data)
@@ -115,7 +117,7 @@ if __name__ == "__main__":
         prev_pos += curr_pos
         scatter_path.set_offsets(prev_pos)
 
-        # update_limit(curr_pos, ax)
+        update_limit(curr_pos, ax)
 
         return scatter, scatter_path
 

@@ -13,9 +13,7 @@ import scala.io.Source
 
 /** Factory creating simulating actors.
   */
-object SimulatingActorFactory {
-  val DELIMITER = ";"
-
+object CsvObjectFactory {
   //** BODY SIMULATION **//
   /** Function loads data about bodies from file and returns set with actor descriptors
     *
@@ -31,10 +29,10 @@ object SimulatingActorFactory {
   ): Set[ActorDescriptor] = {
     var bodyIdx = 0
     val bodies = mutable.Set[ActorDescriptor]()
-    val bufferedSource = createBufferedSource(resourceFilePath)
+    val bufferedSource = CsvUtil.createBufferedSource(resourceFilePath)
     for (line <- bufferedSource.getLines.drop(1)) {
       val csvCols = line
-        .split(DELIMITER)
+        .split(CsvUtil.DELIMITER)
         .map(_.trim)
       bodies += createBodyActor(system, bodyIdx, outputFileDir, csvCols)
       bodyIdx += 1
@@ -57,7 +55,7 @@ object SimulatingActorFactory {
         BigDecimal(csvData(0)),
         Vec2(BigDecimal(csvData(1)), BigDecimal(csvData(2))),
         Vec2(BigDecimal(csvData(3)), BigDecimal(csvData(4))),
-        initCsvFile(outputDir, bodyId)
+        CsvUtil.initCsvFile(outputDir, bodyId)
       ),
       name = bodyId
     )
@@ -103,8 +101,8 @@ object SimulatingActorFactory {
       Props(
         T,
         clusterId,
-        SimulatingActorFactory.loadClusterBodies(resourcePath, clusterId),
-        initCsvFile(outputDir, clusterId)
+        CsvObjectFactory.loadClusterBodies(resourcePath, clusterId),
+        CsvUtil.initCsvFile(outputDir, clusterId)
       ),
       name = clusterId
     )
@@ -114,10 +112,10 @@ object SimulatingActorFactory {
   def loadClusterBodies(resourceName: String, clusterId: String): Set[Body] = {
     var bodyIdx = 0
     val bodies = mutable.Set[Body]()
-    val bufferedSource = createBufferedSource(resourceName)
+    val bufferedSource = CsvUtil.createBufferedSource(resourceName)
     for (line <- bufferedSource.getLines.drop(1)) {
       val cols = line
-        .split(DELIMITER)
+        .split(CsvUtil.DELIMITER)
         .map(_.trim)
       bodies += createBody(clusterId, bodyIdx, cols)
       bodyIdx += 1
@@ -139,41 +137,6 @@ object SimulatingActorFactory {
     )
   }
 
-  def createBufferedSource(resourcePath: String): Source = {
-    try {
-      Source.fromFile(resourcePath)
-    } catch {
-      case _: NullPointerException =>
-        throw new IllegalArgumentException(
-          s"Cannot find resource: ${resourcePath}"
-        )
-    }
-  }
-
-  def initCsvFile(
-      outputPath: Option[String],
-      csvFileName: String
-  ): Option[BufferedWriter] = {
-    outputPath match {
-      case Some(dirPath) =>
-        Some(initCsvFile(Paths.get(dirPath), s"${csvFileName}.csv"))
-      case None => None
-    }
-  }
-
-  def initCsvFile(dirPath: Path, csvFileName: String): BufferedWriter = {
-    val path = Paths.get(dirPath.toString, csvFileName)
-    if (path.toFile.exists()) {
-      path.toFile.delete()
-    } else if (!dirPath.toFile.exists()) {
-      dirPath.toFile.mkdir()
-    }
-    val fileWriter = new BufferedWriter(new FileWriter(path.toFile))
-    val dataHeader = s"${bodyDataDescription}"
-    fileWriter.write(dataHeader)
-    fileWriter
-  }
-
   def bodyDataDescription: String = List(
     "id",
     "\"mass [kg]\"",
@@ -182,7 +145,7 @@ object SimulatingActorFactory {
     "\"velocity x [m/s]\"",
     "\"velocity y [m/s]\"",
     "timestamp"
-  ).mkString(DELIMITER)
+  ).mkString(CsvUtil.DELIMITER)
 
   def loadClusterBodies(
       resourceName: String,

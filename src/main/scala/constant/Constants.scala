@@ -6,5 +6,5 @@ object Constants {
   //  val dt: Int = 43200
   val dt: Int = 10
 
-  val neighbourDistance = BigDecimal("1e50")
+  val neighbourDistance: BigDecimal = BigDecimal("8e11")
 }

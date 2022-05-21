@@ -1,3 +1,3 @@
 package message
 
-case class ActorInitActive(id: String, neighCount: Int, neighId: Set[String], messageId: String)
+case class ActorInitActive(id: String, neighboursIds: Set[String], oldMessageId: String, newMessageId: String)

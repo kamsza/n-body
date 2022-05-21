@@ -22,6 +22,7 @@ class ClusterActor(
   override def receive: Receive = {
     case DividedInitialize(simulationController, progressMonitor, connectionManager) => handleInitialize(simulationController, progressMonitor, connectionManager)
     case AddNeighbourClusters(clusters) => handleAddNeighbourClusters(clusters)
+    case AddNeighbourCluster(cluster) => handleAddNeighbourClusters(cluster)
     case ActivateProgressMonitor(progressMonitor) => setProgressMonitor(progressMonitor)
     case SendDataInit() => handleSendDataInit()
     case DividedDataInit(clusters, id) => handleDataInit(clusters, id)
@@ -33,6 +34,17 @@ class ClusterActor(
     case UpdateBodiesList(newBodies) => handleUpdateBodiesList(newBodies)
   }
 
+  override def handleMakeSimulation(): Unit = {
+    if(clusters.size != SimulationConstants.simulatingActorsCount) {
+      println(s"WARNING: cluster ${id} has info from ${clusters.size} clusters and should have from ${SimulationConstants.simulatingActorsCount}")
+    }
+    super.handleMakeSimulation()
+  }
+
+  def handleAddNeighbourClusters(cluster: ActorDescriptor):Unit = {
+    neighbourClusters.add(cluster)
+  }
+
   def handleSendDataInit(): Unit = {
     neighbourClusters.foreach(
       _.actorRef ! DividedDataInit(clusters.values.toSet, java.util.UUID.randomUUID.toString)
@@ -40,11 +52,13 @@ class ClusterActor(
   }
 
   def handleDataInit(clusters: Set[ClusterDescriptor], messageId: String): Unit = {
-    val diff =  clusters.diff(this.clusters.values.toSet)
-    if(diff.nonEmpty) {
-      clusters.foreach(c => this.clusters += (c.id -> c))
-      neighbourClusters.foreach(_.actorRef ! DividedDataInit(this.clusters.values.toSet, messageId))
-      managingActor ! ActorInitActive(this.id, neighbourClusters.size, neighbourClusters.map(x => x.id).toSet, messageId)
+    val unknownClusters =  clusters.diff(this.clusters.values.toSet)
+    if(unknownClusters.nonEmpty) {
+      unknownClusters.foreach(c => this.clusters += (c.id -> c))
+      val newMessageId = java.util.UUID.randomUUID.toString
+      val neighbourIds = neighbourClusters.map(x => x.id).toSet
+      managingActor ! ActorInitActive(this.id, neighbourIds, messageId, newMessageId)
+      neighbourClusters.foreach(_.actorRef ! DividedDataInit(this.clusters.values.toSet, newMessageId))
     } else {
       managingActor ! ActorInitInactive(this.id, messageId)
     }
@@ -147,20 +161,16 @@ class ClusterActor(
       farNeighbours: Set[ActorDescriptor]
   ): Unit = {
     if(newNeighbours.nonEmpty || farNeighbours.nonEmpty) {
-      println(
-        s"handleUpdateNeighbourList  newNeighbours: ${newNeighbours.size}  farNeighbours: ${farNeighbours.size}"
-      )
+      newNeighbours.foreach(n => n.actorRef ! DividedNewNeighbourDataUpdate(ActorDescriptor(this.id, self), clusters.values.toSet))
+      farNeighbours.foreach(n => n.actorRef ! DividedFarNeighbourDataUpdate(ActorDescriptor(this.id, self), clusters.values.toSet))
+      this.neighbourClusters.addAll(newNeighbours)
+      this.neighbourClusters --= farNeighbours
     }
-    newNeighbours.foreach(n => n.actorRef ! DividedNewNeighbourDataUpdate(ActorDescriptor(this.id, self), clusters.values.toSet))
-    farNeighbours.foreach(n => n.actorRef ! DividedFarNeighbourDataUpdate(ActorDescriptor(this.id, self), clusters.values.toSet))
-    this.neighbourClusters.addAll(newNeighbours)
-    this.neighbourClusters --= farNeighbours
   }
 
   def handleUpdateBodiesList(newBodies: Set[Body]): Unit = {
     if(newBodies.nonEmpty) {
-      println(s"handleUpdateBodiesList  newBodies: ${newBodies.size}")
+      this.bodies ++= newBodies
     }
-    this.bodies ++= newBodies
   }
 }
