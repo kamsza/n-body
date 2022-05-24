@@ -116,11 +116,11 @@ case class DividedSimulatorActor() extends ClusterSimulationHandler {
   def printNeighboursCountInfo(neighboursCount: List[Int]): Unit = {
     println("------------- NEIGH COUNT -------------")
     neighboursCount
-      .groupBy(_.toString)
+      .groupBy(e => e)
       .map(t => (t._1, t._2.length))
       .toSeq
       .sortBy(_._1)
-      .foreach(x => println(s"> ${x._1} - ${x._2}"))
+      .foreach(x => println(s"> neighbours count: ${x._1}     clusters count:  ${x._2}"))
   }
 
   override def handleSimulationFinish(): Unit = {
