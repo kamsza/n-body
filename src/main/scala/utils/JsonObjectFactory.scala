@@ -48,7 +48,7 @@ object JsonObjectFactory {
 
   def updateSimulationConstants(json_data: Value.Value): Unit = {
     getValueIfExists(json_data, "dt").foreach(v => SimulationConstants.dt = v)
-    getValueIfExists(json_data, "simulation_steps_count").foreach(v => SimulationConstants.simulatingActorsCount = v)
+    getValueIfExists(json_data, "simulation_steps_count").foreach(v => SimulationConstants.simulationStepsCount = v)
     getValueNumIfExists(json_data, "softening_parameter").foreach(v => SimulationConstants.softeningParameter = v)
 
     getValueIfExists(json_data, "communication_step").foreach(v => SimulationConstants.communicationStep = v)
