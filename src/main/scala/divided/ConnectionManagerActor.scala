@@ -1,7 +1,7 @@
 package divided
 
 import akka.actor.{Actor, ActorRef}
-import constant.Constants
+import constant.{Constants, SimulationConstants}
 import math.Vec2
 import message.{ClusterNeighbourNetworkUpdate, ConnectionManagerInitialize, SimulationFinish, UpdateNeighbourList}
 
@@ -43,7 +43,7 @@ case class ConnectionManagerActor() extends Actor {
     val newNeighbours = positions
       .filterNot(v => v._1 == id)
       .filterNot(v => neighbours.contains(v._1))
-      .filter(v => position.distance(v._2) < Constants.neighbourDistance)
+      .filter(v => position.distance(v._2) < SimulationConstants.neighbourDistance)
       .map(v =>
         common.ActorDescriptor(
           v._1,
@@ -57,7 +57,7 @@ case class ConnectionManagerActor() extends Actor {
       )
       .toSet
 
-    val farNeighbourDist = 1.1 * Constants.neighbourDistance
+    val farNeighbourDist = 1.1 * SimulationConstants.neighbourDistance
     val farNeighbours = positions
       .filterNot(v => v._1 == id)
       .filter(v => neighbours.contains(v._1))

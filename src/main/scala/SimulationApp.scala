@@ -33,9 +33,9 @@ object SimulationApp extends App {
   }
 
   def loadObjectsFormJson(simulationType: String, inputPath: String, outputPath: Option[String]): Set[ActorDescriptor] = simulationType match {
-    case "s" => JsonObjectFactory.generateBodies(inputPath, outputPath, system)
-    case "c" => JsonObjectFactory.generateClusters(inputPath, outputPath, system, classOf[clustered.ClusterActor])
-    case "d" => JsonObjectFactory.generateClusters(inputPath, outputPath, system, classOf[divided.ClusterActor])
+    case "s" => JsonObjectFactory.parseJsonWithBodies(inputPath, outputPath, system)
+    case "c" => JsonObjectFactory.parseJsonWithClusters(inputPath, outputPath, system, classOf[clustered.ClusterActor])
+    case "d" => JsonObjectFactory.parseJsonWithClusters(inputPath, outputPath, system, classOf[divided.ClusterActor])
   }
 
   def getSimulationManagingActor(simulationType: String): ActorRef = simulationType match {
@@ -44,19 +44,38 @@ object SimulationApp extends App {
     case "d" => system.actorOf(Props(classOf[DividedSimulatorActor]))
   }
 
-  val simulationType = args(0) // "d"
+  def printSimulationData(simulationType: String): Unit = println(
+    s"""===================== Simulation Data =====================
+      |simulation type: ${simulationType}
+      |
+      |dt: ${SimulationConstants.dt}
+      |simulation steps count: ${SimulationConstants.simulationStepsCount}
+      |softening parameter: ${SimulationConstants.softeningParameter}
+      |
+      |communication step: ${SimulationConstants.communicationStep}
+      |bodies affiliation check: ${SimulationConstants.bodiesAffiliationCheck}
+      |cluster neighbours check: ${SimulationConstants.clusterNeighboursCheck}
+      |
+      |min neighbours count: ${SimulationConstants.minNeighboursCount}
+      |simulating actors count: ${SimulationConstants.simulatingActorsCount}
+      |bodies per cluster: ${SimulationConstants.bodiesPerClusterCount}
+      |===========================================================
+      |""".stripMargin
+  )
 
-  val inputPath = args(1) // "F:\\magisterka\\n-body\\src\\main\\resources\\solar_systems"
+  val simulationType = "d"//args(0) // "d"
 
-  val outputPath = if (args.length > 2) Some(args(2)) else None  // Some("F:\\magisterka\\n-body\\results\\divided_s")  
+  val inputPath = "F:\\magisterka\\n-body\\src\\main\\resources\\test.json" // args(1) // solar_systems"
+
+  val outputPath = None // if (args.length > 2) Some(args(2)) else None  // Some("F:\\magisterka\\n-body\\results\\divided_s")
 
   val system = ActorSystem("N-BodySystem")
 
   val simulatingActors = loadObjects(simulationType, inputPath, outputPath)
 
-  SimulationConstants.simulatingActorsCount = simulatingActors.size
-
   val simulationManagingActor = getSimulationManagingActor(simulationType)
+
+  printSimulationData(simulationType)
 
   simulationManagingActor ! SimulationStart(simulatingActors)
 }

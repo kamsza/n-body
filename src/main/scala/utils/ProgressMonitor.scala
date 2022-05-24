@@ -28,14 +28,7 @@ case class ProgressMonitor() extends Actor {
 
   def handleProgressMonitorInitialize(actorIds: Set[String]): Unit = {
     this.actorIds = actorIds
-    printInfoMessage()
   }
-
-  def printInfoMessage(): Unit = println(
-    s"""simulation configuration
-      - steps count: ${SimulationConstants.simulationStepsCount}
-      - dt: ${SimulationConstants.dt}
-      - save data step: ${SimulationConstants.communicationStep}""")
 
   def handleTenthDone(id: String): Unit = {
     if (receivedIds.contains(id)) printWarningMessage(id)

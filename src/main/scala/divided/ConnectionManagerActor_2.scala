@@ -57,7 +57,7 @@ case class ConnectionManagerActor_2() extends Actor {
 //    val newNeighbours = positions
 //      .filterNot(v => v._1 == id)
 //      .filterNot(v => neighbours.contains(v._1))
-//      .filter(v => position.distance(v._2) < Constants.neighbourDistance)
+//      .filter(v => position.distance(v._2) < SimulationConstants.neighbourDistance)
 //      .map(v =>
 //        common.ActorDescriptor(
 //          v._1,
@@ -71,7 +71,7 @@ case class ConnectionManagerActor_2() extends Actor {
 //      )
 //      .toSet
 //
-//    val farNeighbourDist = 1.1 * Constants.neighbourDistance
+//    val farNeighbourDist = 1.1 * SimulationConstants.neighbourDistance
 //    val farNeighbours = positions
 //      .filterNot(v => v._1 == id)
 //      .filter(v => neighbours.contains(v._1))

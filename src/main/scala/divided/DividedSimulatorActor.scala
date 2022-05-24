@@ -99,7 +99,7 @@ case class DividedSimulatorActor() extends ClusterSimulationHandler {
   def getNeighboursInRange(cluster: ClusterActorDescriptor): Set[ActorDescriptor] =
     clusterObjects
       .filterNot(c => cluster.equals(c))
-      .filter(c => cluster.position.distance(c.position) < Constants.neighbourDistance)
+      .filter(c => cluster.position.distance(c.position) < SimulationConstants.neighbourDistance)
       .map(c => ActorDescriptor(c.id, c.actorRef))
       .toSet
 
