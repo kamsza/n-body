@@ -63,11 +63,11 @@ object SimulationApp extends App {
       |""".stripMargin
   )
 
-  val simulationType = "d"//args(0) // "d"
+  val simulationType = args(0) // "d"
 
-  val inputPath = "F:\\magisterka\\n-body\\src\\main\\resources\\test.json" // args(1) // solar_systems"
+  val inputPath = args(1) // solar_systems"
 
-  val outputPath = None // if (args.length > 2) Some(args(2)) else None  // Some("F:\\magisterka\\n-body\\results\\divided_s")
+  val outputPath = if (args.length > 2) Some(args(2)) else None  // Some("F:\\magisterka\\n-body\\results\\divided_s")
 
   val system = ActorSystem("N-BodySystem")
 
