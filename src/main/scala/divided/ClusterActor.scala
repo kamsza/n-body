@@ -35,9 +35,9 @@ class ClusterActor(
   }
 
   override def handleMakeSimulation(): Unit = {
-    if(clusters.size != SimulationConstants.simulatingActorsCount) {
-      println(s"WARNING: cluster ${id} has info from ${clusters.size} clusters and should have from ${SimulationConstants.simulatingActorsCount}")
-    }
+    //if(clusters.size != SimulationConstants.simulatingActorsCount) {
+      //println(s"WARNING: cluster ${id} has info from ${clusters.size} clusters and should have from ${SimulationConstants.simulatingActorsCount}")
+    //}
     super.handleMakeSimulation()
   }
 

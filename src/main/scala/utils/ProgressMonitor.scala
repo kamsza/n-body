@@ -31,7 +31,7 @@ case class ProgressMonitor() extends Actor {
   }
 
   def handleTenthDone(id: String): Unit = {
-    if (receivedIds.contains(id)) printWarningMessage(id)
+    // if (receivedIds.contains(id)) printWarningMessage(id)
     receivedIds += id
     if (receivedIds.equals(actorIds)) {
       receivedIds.clear()
