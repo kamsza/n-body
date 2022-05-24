@@ -1,20 +1,20 @@
 #!/bin/bash -l
-#SBATCH --cpus-per-task=1
+#SBATCH --cpus-per-task=24
 #SBATCH --partition=plgrid-testing
-#SBATCH --time=00:05:00
+#SBATCH --time=00:20:00
 
 module load plgrid/tools/sbt/0.13.13
 
-echo "================================="
-echo "| bodies count:  10             |"
-echo "| cpus-per-task: 1              |"
-echo "| test runs:     10             |"
-echo "| type:          single         |"
-echo "| partition:     plgrid-testing |"
-echo "================================="
+testRuns=3
+type="d"
+testFiles=("/net/people/plgkamsza/n-body/src/main/resources/testx.json")
 
-count=10
-for i in $(seq $count); do
-    echo "------------------------ $i ------------------------"
-    sbt "run s src/main/resources/test/10_bodies.txt"
+for testFile in ${testFiles[@]}; do
+    echo ""
+    echo ""
+    echo "================================================================"
+    for i in $(seq $testRuns); do
+        echo "------------------------ $i ------------------------"
+        sbt "run $type $testFile"
+    done
 done
