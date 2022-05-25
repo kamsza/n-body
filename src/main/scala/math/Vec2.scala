@@ -1,17 +1,17 @@
 package math
 
-case class Vec2(x: BigDecimal, y: BigDecimal) {
-  def /(scalar: BigDecimal): Vec2 = this * (1.0 / scalar)
+case class Vec2(x: Double, y: Double) {
+  def /(scalar: Double): Vec2 = this * (1.0 / scalar)
 
-  def distance(that: Vec2): BigDecimal = (this - that).length
+  def distance(that: Vec2): Double = (this - that).length
 
   def -(that: Vec2): Vec2 = this + (that * -1)
 
-  def *(scalar: BigDecimal): Vec2 = copy(x * scalar, y * scalar)
+  def *(scalar: Double): Vec2 = Vec2(x * scalar, y * scalar)
 
-  def +(that: Vec2): Vec2 = copy(x + that.x, y + that.y)
+  def +(that: Vec2): Vec2 = Vec2(x + that.x, y + that.y)
 
-  def length: BigDecimal = BigDecimalMath.sqrt((x * x + y * y))
+  def length: Double = Math.sqrt((x * x + y * y))
 
   override def toString: String = s"($x , $y)"
 

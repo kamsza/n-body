@@ -121,9 +121,9 @@ object ClusterFactory {
   ): Body = {
     new Body(
       s"${clusterId}_${bodyIdx}",
-      BigDecimal(mass),
-      Vec2(positionX, BigDecimal(positionY)),
-      Vec2(BigDecimal(0), BigDecimal(0))
+      mass,
+      Vec2(positionX, positionY),
+      Vec2(0.0, 0.0)
     )
   }
 }

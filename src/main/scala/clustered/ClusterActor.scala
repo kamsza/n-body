@@ -32,7 +32,7 @@ class ClusterActor(
     )
   }
 
-  def handleClusteredDataInit(id: String, mass: BigDecimal, position: Vec2): Unit = {
+  def handleClusteredDataInit(id: String, mass: Double, position: Vec2): Unit = {
     receivedMessagesCounter += 1
     neighbourObjects += (id -> ClusterDescriptor(id, mass, position))
     if (receivedMessagesCounter == neighbourClusters.size) {
@@ -41,7 +41,7 @@ class ClusterActor(
     }
   }
 
-  def handleClusterDataUpdate(id: String, mass: BigDecimal, position: Vec2): Unit = {
+  def handleClusterDataUpdate(id: String, mass: Double, position: Vec2): Unit = {
     receivedMessagesCounter += 1
     neighbourObjects += (id -> ClusterDescriptor(id, mass, position))
     if (receivedMessagesCounter == neighbourClusters.size) {

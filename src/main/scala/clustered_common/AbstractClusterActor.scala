@@ -13,7 +13,7 @@ import scala.collection.mutable
 
 abstract class AbstractClusterActor(
                                      override val id: String,
-                                     override val mass: BigDecimal,
+                                     override val mass: Double,
                                      var position: Vec2,
                                      var bodies: Set[Body],
                                      resultsFileWriter: Option[BufferedWriter])
@@ -98,12 +98,12 @@ abstract class AbstractClusterActor(
     context.stop(self)
   }
 
-  def countSummaryMass(): BigDecimal = PhysicsUtil.countSummaryMass(bodies)
+  def countSummaryMass(): Double = PhysicsUtil.countSummaryMass(bodies)
 
   def moveSystemMassCenter(vector: Vec2): Unit = bodies.foreach(_.changePosition(vector))
 
   @Override
-  def toList: List[(String, BigDecimal, BigDecimal, BigDecimal, BigDecimal, BigDecimal)] = {
+  def toList: List[(String, Double, Double, Double, Double, Double)] = {
     bodies.toList
       .sortBy(body => body.id)
       .map(body => body.toTuple)

@@ -55,9 +55,9 @@ object BodyFactory {
       Props(
         classOf[BodyActor],
         bodyId,
-        BigDecimal(mass),
-        Vec2(BigDecimal(positionX), BigDecimal(positionY)),
-        Vec2(BigDecimal(velocityX), BigDecimal(velocityY)),
+        mass,
+        Vec2(positionX, positionY),
+        Vec2(velocityX,velocityY),
         CsvUtil.initCsvFile(outputDir, bodyId)
       ),
       name = bodyId

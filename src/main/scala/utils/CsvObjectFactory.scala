@@ -52,9 +52,9 @@ object CsvObjectFactory {
       Props(
         classOf[BodyActor],
         bodyId,
-        BigDecimal(csvData(0)),
-        Vec2(BigDecimal(csvData(1)), BigDecimal(csvData(2))),
-        Vec2(BigDecimal(csvData(3)), BigDecimal(csvData(4))),
+        csvData(0).toDouble,
+        Vec2(csvData(1).toDouble, csvData(2).toDouble),
+        Vec2(csvData(3).toDouble, csvData(4).toDouble),
         CsvUtil.initCsvFile(outputDir, bodyId)
       ),
       name = bodyId
@@ -131,9 +131,9 @@ object CsvObjectFactory {
   ): Body = {
     new Body(
       s"${clusterId}_${bodyIdx}",
-      BigDecimal(csvData(0)),
-      Vec2(BigDecimal(csvData(1)), BigDecimal(csvData(2))),
-      Vec2(BigDecimal(csvData(3)), BigDecimal(csvData(4)))
+      csvData(0).toDouble,
+      Vec2(csvData(1).toDouble, csvData(2).toDouble),
+      Vec2(csvData(3).toDouble, csvData(4).toDouble)
     )
   }
 

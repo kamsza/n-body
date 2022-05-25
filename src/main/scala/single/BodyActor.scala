@@ -12,7 +12,7 @@ import scala.collection.mutable
 
 class BodyActor(
                  id: String,
-                 mass: BigDecimal,
+                 mass: Double,
                  startPosition: Vec2,
                  startVelocity: Vec2,
                  resultsFileWriter: Option[BufferedWriter])
@@ -50,7 +50,7 @@ class BodyActor(
     sendUpdate()
   }
 
-  def handleBodyDataUpdate(id: String, mass: BigDecimal, position: Vec2): Unit = {
+  def handleBodyDataUpdate(id: String, mass: Double, position: Vec2): Unit = {
     receivedMessagesCounter += 1
     bodies += id
     applyForce(mass, position)
