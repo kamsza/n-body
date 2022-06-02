@@ -12,25 +12,17 @@ case class ConnectionManagerActor() extends Actor {
   var positions: Map[String, Vec2] = null
 
   override def receive: Receive = {
-    case ConnectionManagerInitialize(clusters) =>
-      handleClusterNeighbourNetworkInitialize(clusters)
-    case ClusterNeighbourNetworkUpdate(id, position, neighbours) =>
-      handleClusterNeighbourNetworkUpdate(id, position, neighbours)
+    case ConnectionManagerInitialize(clusters) => handleClusterNeighbourNetworkInitialize(clusters)
+    case ClusterNeighbourNetworkUpdate(id, position, neighbours) => handleClusterNeighbourNetworkUpdate(id, position, neighbours)
     case SimulationFinish() => finish()
   }
 
-  def handleClusterNeighbourNetworkInitialize(
-      clusters: Set[ClusterActorDescriptor]
-  ): Unit = {
+  def handleClusterNeighbourNetworkInitialize(clusters: Set[ClusterActorDescriptor]): Unit = {
     actors = clusters
-      .map(clusterDescriptor =>
-        clusterDescriptor.id -> clusterDescriptor.actorRef
-      )
+      .map(clusterDescriptor => clusterDescriptor.id -> clusterDescriptor.actorRef)
       .toMap
     positions = clusters
-      .map(clusterDescriptor =>
-        clusterDescriptor.id -> clusterDescriptor.position
-      )
+      .map(clusterDescriptor => clusterDescriptor.id -> clusterDescriptor.position)
       .toMap
   }
 
@@ -39,7 +31,6 @@ case class ConnectionManagerActor() extends Actor {
       position: Vec2,
       neighbours: Set[String]
   ): Unit = {
-    //println(s"ClusterNeighbourNetworkUpdate   id: ${id}")
     val newNeighbours = positions
       .filterNot(v => v._1 == id)
       .filterNot(v => neighbours.contains(v._1))

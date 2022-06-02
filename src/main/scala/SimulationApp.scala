@@ -65,7 +65,7 @@ object SimulationApp extends App {
 
   val simulationType = args(0) // "d"
 
-  val inputPath = args(1) // solar_systems"
+  val inputPath = args(1) // "F:\\magisterka\\n-body\\src\\main\\resources\\test.json"
 
   val outputPath = if (args.length > 2) Some(args(2)) else None  // Some("F:\\magisterka\\n-body\\results\\divided_s")
 

@@ -25,11 +25,10 @@ case class DividedSimulatorActor() extends ClusterSimulationHandler {
 
   override def receive: Receive = {
     case SimulationStart(clusters) => handleSimulationStart(clusters)
-    case ClusterInitialized(id, position) =>
-      handleClusterInitialized(id, position, sender())
-    case ClusterReady()     => handleClusterReady()
-    case ActorInitActive(id,  ids, oldMessageId, newMessageId) => handleActive(id, ids, oldMessageId, newMessageId)
-    case ActorInitInactive(id, messageId) =>         handleInactive(id, messageId)
+    case ClusterInitialized(id, position) => handleClusterInitialized(id, position, sender())
+    case ClusterReady() => handleClusterReady()
+    case ActorInitActive(id, ids, oldMessageId, newMessageId) => handleActive(id, ids, oldMessageId, newMessageId)
+    case ActorInitInactive(id, messageId) => handleInactive(id, messageId)
     case SimulationFinish() => handleSimulationFinish()
   }
 

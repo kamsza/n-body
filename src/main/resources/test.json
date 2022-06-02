@@ -1,12 +1,12 @@
 {
-  "clusters_count": 50,
   "clusters_spacing": 1e20,
-  "bodies_per_cluster": 100,
   "clusters_radius": 2e18,
-
   "dt": 300,
-  "simulation_steps_count" : 100,
+
+  "neighbours_distance": 1.9e20,
   "min_neighbours_count": 5,
 
-  "neighbours_distance": 1.9e20
+  "clusters_count": 250,
+  "bodies_per_cluster": 10,
+  "simulation_steps_count" : 300
 }

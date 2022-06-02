@@ -79,7 +79,7 @@ abstract class AbstractClusterActor(
 
   def doOnSimulationStepAction(stepsCounter: Int): Unit = {
     if (resultsFileWriter.isDefined && stepsCounter % SimulationConstants.communicationStep == 0) writeDataToFile()
-    if (stepsCounter % progressMarker == 0) progressMonitor ! OneTenthDone(id)
+    if (stepsCounter != 0 && stepsCounter % progressMarker == 0) progressMonitor ! OneTenthDone(id)
     if (stepsCounter == 0) finish()
   }
 

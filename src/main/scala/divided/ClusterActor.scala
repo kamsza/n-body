@@ -34,6 +34,11 @@ class ClusterActor(
     case UpdateBodiesList(newBodies) => handleUpdateBodiesList(newBodies)
   }
 
+  def handleInitialize(simulationController: ActorRef, progressMonitor: ActorRef, connectionManager: ActorRef): Unit = {
+    super.handleInitialize(simulationController, progressMonitor)
+    this.connectionManager = connectionManager
+  }
+
   override def handleMakeSimulation(): Unit = {
     //if(clusters.size != SimulationConstants.simulatingActorsCount) {
       //println(s"WARNING: cluster ${id} has info from ${clusters.size} clusters and should have from ${SimulationConstants.simulatingActorsCount}")
@@ -46,9 +51,7 @@ class ClusterActor(
   }
 
   def handleSendDataInit(): Unit = {
-    neighbourClusters.foreach(
-      _.actorRef ! DividedDataInit(clusters.values.toSet, java.util.UUID.randomUUID.toString)
-    )
+    neighbourClusters.foreach(_.actorRef ! DividedDataInit(clusters.values.toSet, java.util.UUID.randomUUID.toString))
   }
 
   def handleDataInit(clusters: Set[ClusterDescriptor], messageId: String): Unit = {
@@ -62,12 +65,6 @@ class ClusterActor(
     } else {
       managingActor ! ActorInitInactive(this.id, messageId)
     }
-  }
-
-  def handleInitialize(simulationController: ActorRef, progressMonitor: ActorRef, connectionManager: ActorRef): Unit = {
-    super.handleInitialize(simulationController, progressMonitor)
-    this.connectionManager = connectionManager
-    connectionManager ! SayHello()
   }
 
   def handleClusterDataUpdate(clustersUpdate: Set[ClusterDescriptor]): Unit = {
@@ -105,9 +102,7 @@ class ClusterActor(
 
 
   override def sendUpdate(): Unit = {
-    neighbourClusters.foreach(
-      _.actorRef ! DividedDataUpdate(clusters.values.toSet)
-    )
+    neighbourClusters.foreach(_.actorRef ! DividedDataUpdate(clusters.values.toSet))
   }
 
   override def makeSimulationStep(): Unit = {
@@ -115,14 +110,13 @@ class ClusterActor(
     timestamp += 1
   }
 
-  def updateDescriptor(): Unit = {
+  def updateDescriptor(): Unit =
     clusters.update(id, ClusterDescriptor(id, mass, position, timestamp))
-  }
 
   override def doOnSimulationStepAction(stepsCounter: Int): Unit = {
     super.doOnSimulationStepAction(stepsCounter)
-    if (stepsCounter % SimulationConstants.bodiesAffiliationCheck == 0) checkBodiesAffiliation()
-    if (stepsCounter % SimulationConstants.clusterNeighboursCheck == 0) checkClusterAffiliation()
+    if (stepsCounter != 0 && stepsCounter % SimulationConstants.bodiesAffiliationCheck == 0) checkBodiesAffiliation()
+    if (stepsCounter != 0 && stepsCounter % SimulationConstants.clusterNeighboursCheck == 0) checkClusterAffiliation()
   }
 
   def checkBodiesAffiliation(): Unit = {
@@ -147,12 +141,13 @@ class ClusterActor(
       })
   }
 
-  def checkClusterAffiliation(): Unit =
+  def checkClusterAffiliation(): Unit = {
     connectionManager ! ClusterNeighbourNetworkUpdate(
       this.id,
       this.position,
       this.neighbours.map(n => n.id)
     )
+  }
 
   override def neighbours: Set[Object] = clusters.values.toSet
 
