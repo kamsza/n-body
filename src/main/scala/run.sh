@@ -1,20 +1,20 @@
 #!/bin/bash -l
-#SBATCH --cpus-per-task=1
-#SBATCH --time=01:30:00
+#SBATCH --ntasks=100
+#SBATCH --partition=plgrid-short
+#SBATCH --time=00:10:00
 
 module load plgrid/tools/sbt/0.13.13
 
-echo "================================="
-echo "| clusters count:  100          |"
-echo "| bodies / cluster count:  1000 |"
-echo "| cpus-per-task: 1              |"
-echo "| test runs:     5              |"
-echo "| type:          clustered      |"
-echo "| partition:     plgrid         |"
-echo "================================="
+testRuns=4
+testFiles=("/net/people/plgkamsza/n-body/src/main/resources/test-weak/test4.json")
 
-count=5
-for i in $(seq $count); do
-    echo "------------------------ $i ------------------------"
-    sbt "run c src/main/resources/cls-100-1000"
+for testFile in ${testFiles[@]}; do
+    echo ""
+    echo ""
+    echo "================================================================"
+    for i in $(seq $testRuns); do
+        echo "------------------------ $i ------------------------"
+        sbt "run c $testFile"
+        sbt "run d $testFile"
+    done
 done
