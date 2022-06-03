@@ -1,12 +1,14 @@
 #!/bin/bash -l
-#SBATCH --ntasks=100
+
+#SBATCH --ntasks=512
 #SBATCH --partition=plgrid-short
-#SBATCH --time=00:10:00
+#SBATCH --time=00:05:00
+#SBATCH --mem=20G
 
 module load plgrid/tools/sbt/0.13.13
 
-testRuns=4
-testFiles=("/net/people/plgkamsza/n-body/src/main/resources/test-weak/test4.json")
+testRuns=3
+testFiles=("/net/people/plgkamsza/n-body/src/main/resources/test-weak/test2.json")
 
 for testFile in ${testFiles[@]}; do
     echo ""
@@ -14,7 +16,6 @@ for testFile in ${testFiles[@]}; do
     echo "================================================================"
     for i in $(seq $testRuns); do
         echo "------------------------ $i ------------------------"
-        sbt "run c $testFile"
-        sbt "run d $testFile"
+        sbt "run $type $testFile"
     done
 done
