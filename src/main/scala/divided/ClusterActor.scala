@@ -39,12 +39,12 @@ class ClusterActor(
     this.connectionManager = connectionManager
   }
 
-  override def handleMakeSimulation(): Unit = {
+  //override def handleMakeSimulation(): Unit = {
     //if(clusters.size != SimulationConstants.simulatingActorsCount) {
       //println(s"WARNING: cluster ${id} has info from ${clusters.size} clusters and should have from ${SimulationConstants.simulatingActorsCount}")
     //}
-    super.handleMakeSimulation()
-  }
+    //super.handleMakeSimulation()
+  //}
 
   def handleAddNeighbourClusters(cluster: ActorDescriptor):Unit = {
     neighbourClusters.add(cluster)
@@ -102,7 +102,8 @@ class ClusterActor(
 
 
   override def sendUpdate(): Unit = {
-    neighbourClusters.foreach(_.actorRef ! DividedDataUpdate(clusters.values.toSet))
+    val currentClustersInfo = clusters.values.toSet
+    neighbourClusters.foreach(_.actorRef ! DividedDataUpdate(currentClustersInfo))
   }
 
   override def makeSimulationStep(): Unit = {
