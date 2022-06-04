@@ -19,16 +19,15 @@ abstract class AbstractClusterActor(
                                      resultsFileWriter: Option[BufferedWriter])
   extends Object with Actor {
 
-  val neighbourClusters: mutable.Set[ActorDescriptor] = mutable.Set[ActorDescriptor]()
-
-  var stepsCounter: Int = SimulationConstants.simulationStepsCount
   val progressMarker: Int = Math.max(1, (SimulationConstants.simulationStepsCount / 10).floor.toInt)
-  var receivedMessagesCounter: Int = 0
+
+  val neighbourActorDescriptors: mutable.Set[ActorDescriptor] = mutable.Set[ActorDescriptor]()
 
   var managingActor: ActorRef = ActorRef.noSender
   var progressMonitor: ActorRef = ActorRef.noSender
 
-  var timestamp: Int = 0
+  var receivedMessagesCounter: Int = 0
+  var stepNumber: Int = 0
 
   def this(id: String, bodies: Set[Body], resultsFileWriter: Option[BufferedWriter]) = {
     this(id, PhysicsUtil.countSummaryMass(bodies), PhysicsUtil.countCenterOfMass(bodies), bodies, resultsFileWriter)
@@ -45,7 +44,7 @@ abstract class AbstractClusterActor(
   }
 
   def handleAddNeighbourClusters(clusters: Set[ActorDescriptor]): Unit = {
-    neighbourClusters.addAll(clusters)
+    neighbourActorDescriptors.addAll(clusters)
     managingActor ! ClusterReady()
   }
 
@@ -55,54 +54,59 @@ abstract class AbstractClusterActor(
     sendUpdate()
   }
 
-  def applyForce(): Unit = {
-    bodies.foreach(body => bodies.filter(b => b.id != body.id).foreach(body.applyForce))
-    bodies.foreach(body => neighbours.filter(n => n.id != this.id).foreach(body.applyForce))
-  }
-
   def makeSimulationStep(): Unit = {
-    stepsCounter -= 1
-    updateBodiesPosition()
-    position = countCenterOfMass()
+    stepNumber += 1
+
+    moveBodies()
+    updateClusterPosition()
+
+    doOnSimulationStepAction(stepNumber)
+    sendUpdate()
   }
 
-  def updateBodiesPosition(): Unit = {
+  def moveBodies(): Unit = {
     applyForce()
     bodies.foreach(_.move())
   }
 
-  def countCenterOfMass(): Vec2 = PhysicsUtil.countCenterOfMass(bodies)
+  def updateClusterPosition(): Unit =
+    this.position = PhysicsUtil.countCenterOfMass(bodies)
 
-  def sendUpdate(): Unit
-
-  def neighbours: Set[Object]
+  def applyForce(): Unit = {
+    val clusterDescriptorsValues = systemClusterDescriptors.filter(n => n.id != this.id)
+    bodies.foreach(body => {
+      bodies.foreach(body.applyForce)
+      clusterDescriptorsValues.foreach(body.applyForce)
+    })
+  }
 
   def doOnSimulationStepAction(stepsCounter: Int): Unit = {
-    if (resultsFileWriter.isDefined && stepsCounter % SimulationConstants.communicationStep == 0) writeDataToFile()
-    if (stepsCounter != 0 && stepsCounter % progressMarker == 0) progressMonitor ! OneTenthDone(id)
-    if (stepsCounter == 0) finish()
+    if (stepNumber == 0) {
+      // nothing to do
+    } else if (stepNumber == SimulationConstants.simulationStepsCount) {
+      writeDataToFile()
+      finish()
+    } else {
+      doExtraSimulationStepAction(stepsCounter)
+    }
+  }
+
+  def doExtraSimulationStepAction(stepsCounter: Int): Unit = {
+    if (stepsCounter % SimulationConstants.communicationStep == 0) writeDataToFile()
+    if (stepsCounter % progressMarker == 0) progressMonitor ! OneTenthDone(id)
   }
 
   def writeDataToFile(): Unit = {
-    val dataString = bodies
-      .map(body => body.toTuple)
-      .map(tuple => tuple.productIterator.mkString(CsvUtil.DELIMITER))
-      .map(str => str + CsvUtil.DELIMITER + timestamp)
-      .mkString("\n")
-    resultsFileWriter.get.write(s"\n${dataString}")
+    if(resultsFileWriter.isDefined) {
+      val dataString = bodies
+        .map(body => body.toTuple)
+        .map(tuple => tuple.productIterator.mkString(CsvUtil.DELIMITER))
+        .map(str => str + CsvUtil.DELIMITER + stepNumber)
+        .mkString("\n")
+      resultsFileWriter.get.write(s"\n${dataString}")
+    }
   }
 
-  def finish(): Unit = {
-    if(resultsFileWriter.isDefined) resultsFileWriter.get.close()
-    managingActor ! SimulationFinish()
-    context.stop(self)
-  }
-
-  def countSummaryMass(): Double = PhysicsUtil.countSummaryMass(bodies)
-
-  def moveSystemMassCenter(vector: Vec2): Unit = bodies.foreach(_.changePosition(vector))
-
-  @Override
   def toList: List[(String, Double, Double, Double, Double, Double)] = {
     bodies.toList
       .sortBy(body => body.id)
@@ -110,4 +114,14 @@ abstract class AbstractClusterActor(
   }
 
   override def toString: String = bodies.map(body => body.toString).mkString("\n")
+
+  def finish(): Unit = {
+    if(resultsFileWriter.isDefined) resultsFileWriter.get.close()
+    managingActor ! SimulationFinish()
+    context.stop(self)
+  }
+
+  def sendUpdate(): Unit
+
+  def systemClusterDescriptors: Set[Object]
 }
