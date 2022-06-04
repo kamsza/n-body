@@ -20,11 +20,16 @@ abstract class AbstractBody(
 
   def applyForce(otherObject: Object): Unit = {
     if (id != otherObject.id)
-      applyForce(otherObject.mass, otherObject.position)
+      applyForce(otherObject.id, otherObject.mass, otherObject.position)
   }
 
-  def applyForce(mass: Double, position: Vec2): Unit = {
-    bodiesMassDistanceDiffSum += countMassDistanceDiffVec(mass, position)
+  def applyForce(id:String, mass: Double, position: Vec2): Unit = {
+    val diffVec = countMassDistanceDiffVec(mass, position)
+    if(diffVec.x.isNaN || diffVec.y.isNaN) {
+      println(s"WARN: NaN between ${this.id} and ${id}")
+    } else {
+      bodiesMassDistanceDiffSum += diffVec
+    }
   }
 
   def countMassDistanceDiffVec(mass: Double, position: Vec2): Vec2 = {
