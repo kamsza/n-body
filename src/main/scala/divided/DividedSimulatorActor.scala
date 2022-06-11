@@ -35,9 +35,9 @@ case class DividedSimulatorActor() extends ClusterSimulationHandler {
   def handleClusterReady(): Unit = {
     readyActorsCounter += 1
     if (readyActorsCounter.equals(actorsCount)) {
-      startSimulation()
-//      actors.foreach(body => body ! SendDataInit())
-//      println("data initialization")
+      //startSimulation()
+      actors.foreach(a => a ! SendDataInit())
+      println("data initialization")
     }
   }
 

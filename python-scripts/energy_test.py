@@ -2,18 +2,19 @@ import math
 import matplotlib.pyplot as plt
 import pandas as pd
 import sys
+from os import listdir
+from os.path import isfile, join, abspath
+
+"""
+Checks the principle of conservation of energy for results
+
+Expected arguments:
+ argv(1)  -  name of dir with results
+"""
 
 RESULTS_DIR = "../results/"
-CSV_DELIMITER = ' '
+CSV_DELIMITER = ';'
 G = 6.67408e-11
-
-if len(sys.argv) < 2:
-    print("Specify the file path as an argument to the program")
-
-file = RESULTS_DIR + sys.argv[1]
-df = pd.read_csv(file, sep=CSV_DELIMITER, header=0, names=['id', 'mass', 'pos_x', 'pos_y', 'v_x', 'v_y'])
-points_count = df['id'].nunique()
-
 
 def count_KE(row):
     # KE = m * (v_x^2 + v_y^2) / 2
@@ -39,13 +40,32 @@ def count_r(x_1, y_1, x_2, y_2):
     return math.sqrt((x_1 - x_2) ** 2 + (y_1 - y_2) ** 2)
 
 
+dir_path = join(RESULTS_DIR, sys.argv[1])
+files = [abspath(join(dir_path, f)) for f in listdir(dir_path) if isfile(join(dir_path, f))]
+df = pd.DataFrame(columns=['id', 'mass', 'pos_x', 'pos_y', 'v_x', 'v_y', 'timestamp'])
+
+for file_name in files:
+    data = pd.read_csv(file_name, sep=CSV_DELIMITER, header=0, names=['id', 'mass', 'pos_x', 'pos_y', 'v_x', 'v_y', 'timestamp'])
+    df = pd.concat([df, data])
+
+points_count = df['id'].nunique()
+timestamp = df['timestamp'].min()
+steps = int(df['timestamp'].max() / timestamp)
+
+curr_timestamp = timestamp
 energy_df = pd.DataFrame([], columns=["KE", "PE", "E"])
-for n in range(0, len(df) // points_count):
-    curr_rows = df.iloc[n * points_count: (n + 1) * points_count]
+for i in range(steps):
+    curr_rows = df.loc[df['timestamp'] == curr_timestamp]
+
     KE = curr_rows.apply(count_KE, axis=1).sum()
     PE = curr_rows.apply(lambda row: count_PE(row, curr_rows), axis=1).sum()
     E = KE + PE
-    energy_df = energy_df.append({"KE": KE, "PE": PE, "E": E}, ignore_index=True)
+
+    energy_df = pd.concat([energy_df, pd.DataFrame([{"KE": KE, "PE": PE, "E": E}])], ignore_index=True)
+    curr_timestamp += timestamp
+    print(f"[{i} / {steps}]   E: {E}    KE: {KE}    PE: {PE}")
+
+energy_df["E"].to_csv(f'E_{sys.argv[1]}.csv', index=False)
 
 fig, (ax1, ax2) = plt.subplots(2)
 energy_df.plot(ax=ax1)

@@ -20,6 +20,8 @@ class ClusterActor(
 
   var connectionManager: ActorRef = ActorRef.noSender
 
+  var expectedMessagesCount = -1
+
   override def receive: Receive = {
     case DividedInitialize(simulationController, progressMonitor, connectionManager) => handleInitialize(simulationController, progressMonitor, connectionManager)
     case AddNeighbourClusters(clusters) => handleAddNeighbourClusters(clusters)
@@ -40,12 +42,12 @@ class ClusterActor(
     this.connectionManager = connectionManager
   }
 
-  //override def handleMakeSimulation(): Unit = {
-    //if(clusters.size != SimulationConstants.simulatingActorsCount) {
-      //println(s"WARNING: cluster ${id} has info from ${clusters.size} clusters and should have from ${SimulationConstants.simulatingActorsCount}")
-    //}
-    //super.handleMakeSimulation()
-  //}
+  override def handleMakeSimulation(): Unit = {
+    if(clusterDescriptors.size != SimulationConstants.simulatingActorsCount) {
+      println(s"WARNING: cluster ${id} has info from ${clusterDescriptors.size} clusters and should have from ${SimulationConstants.simulatingActorsCount}")
+    }
+    super.handleMakeSimulation()
+  }
 
   def handleAddNeighbourClusters(cluster: ActorDescriptor):Unit = {
     neighbourActorDescriptors.add(cluster)
@@ -84,7 +86,7 @@ class ClusterActor(
       }
     })
 
-    if (receivedMessagesCounter == neighbourActorDescriptors.size) {
+    if (receivedMessagesCounter == expectedMessagesCount) {
       receivedMessagesCounter = 0
       makeSimulationStep()
     }
@@ -105,6 +107,7 @@ class ClusterActor(
     clusterDescriptors.update(id, ClusterDescriptor(id, mass, position, stepNumber))
     val currentClustersInfo = clusterDescriptors.values.toSet
     neighbourActorDescriptors.foreach(_.actorRef ! DividedDataUpdate(currentClustersInfo))
+    expectedMessagesCount = neighbourActorDescriptors.size
   }
 
   override def doExtraSimulationStepAction(stepsCounter: Int): Unit = {
